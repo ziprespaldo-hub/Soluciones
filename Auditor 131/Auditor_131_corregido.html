@@ -1,0 +1,2212 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador de Carpetas de Investigación - CNPP</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border: 3px dashed #dee2e6;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #007bff;
+            background: #e3f2fd;
+        }
+
+        .upload-section.dragover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,123,255,0.3);
+        }
+
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .file-info {
+            flex-grow: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .file-size {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40,167,69,0.3);
+        }
+
+        .analyze-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #007bff, #28a745);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 40px;
+        }
+
+        .analysis-summary {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .score-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: white;
+            position: relative;
+        }
+
+        .score-low { background: linear-gradient(135deg, #dc3545, #c82333); }
+        .score-medium { background: linear-gradient(135deg, #ffc107, #e0a800); }
+        .score-high { background: linear-gradient(135deg, #28a745, #20c997); }
+
+        .elements-checklist {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .element-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 4px solid #dee2e6;
+        }
+
+        .element-card.present {
+            border-left-color: #28a745;
+        }
+
+        .element-card.missing {
+            border-left-color: #dc3545;
+        }
+
+        .element-card.partial {
+            border-left-color: #ffc107;
+        }
+
+        .element-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .present .status-icon { color: #28a745; }
+        .missing .status-icon { color: #dc3545; }
+        .partial .status-icon { color: #ffc107; }
+
+        .element-description {
+            color: #6c757d;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .detailed-report {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+
+        .report-section {
+            margin-bottom: 30px;
+        }
+
+        .report-section h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .export-controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .export-btn {
+            background: linear-gradient(45deg, #6f42c1, #563d7c);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(111,66,193,0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media print {
+            body { background: white; }
+            .container { box-shadow: none; }
+            .upload-section, .export-controls { display: none; }
+            .main-content { padding: 20px; }
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1em;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Analizador de Carpetas de Investigación</h1>
+            <p>Sistema de Evaluación de Integración según CNPP - Artículo 131</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Sección de Carga de Archivos -->
+            <div class="upload-section" id="uploadSection">
+			<h2>📁 Cargar Documentos de la Carpeta de Investigación</h2>
+			<p>Soporta archivos PDF, DOC, DOCX y TXT</p>
+                <input type="file" id="fileInput" class="file-input" multiple accept=".pdf,.doc,.docx,.txt">
+				
+				<label for="fileInput" class="upload-btn" style="cursor:pointer; display: inline-block;">
+				📎 Seleccionar Archivos
+				
+			</label>
+                <div class="file-list" id="fileList"></div>
+				
+				<div id="debugFileOutput" style="background: #f8f9fa; border: 1px dashed #ccc; margin-top: 15px; padding: 10px;">
+        <strong>🧪 Archivos cargados (debug):</strong>
+        <ul id="debugFileList" style="font-size: 0.9em; color: #333;"></ul>
+		</div>
+		</div>
+
+            <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysis()" disabled>
+                🔍 Analizar Carpeta de Investigación
+            </button>
+
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <!-- Sección de Resultados -->
+            <div class="results-section" id="resultsSection">
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('summary')">Resumen Ejecutivo</button>
+                    <button class="tab" onclick="showTab('checklist')">Lista de Verificación</button>
+                    <button class="tab" onclick="showTab('detailed')">Informe Detallado</button>
+                    <button class="tab" onclick="showTab('legal')">Marco Legal</button>
+                </div>
+
+                <!-- Resumen Ejecutivo -->
+                <div class="tab-content active" id="summary">
+                    <div class="analysis-summary">
+                        <div class="score-display">
+                            <div class="score-circle" id="scoreCircle">
+                                <span id="scoreText">0%</span>
+                            </div>
+                            <h3>Nivel de Judicialización</h3>
+                            <p id="scoreDescription">Evaluando...</p>
+                        </div>
+                        
+                        <div class="report-section">
+                            <h3>📊 Análisis General</h3>
+                            <div id="generalAnalysis"></div>
+							<h3>📈 Histograma de Elementos CNPP</h3>
+						<canvas id="cnppChart" style="max-width: 100%; height: 300px;"></canvas>
+							</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Verificación -->
+                <div class="tab-content" id="checklist">
+                    <h2>✅ Elementos de la Carpeta de Investigación</h2>
+                    <div class="elements-checklist" id="elementsChecklist"></div>
+                </div>
+
+                <!-- Informe Detallado -->
+                <div class="tab-content" id="detailed">
+                    <div class="detailed-report" id="detailedReport"></div>
+                </div>
+
+                <!-- Marco Legal -->
+                <div class="tab-content" id="legal">
+                    <div class="detailed-report" id="legalFramework"></div>
+                </div>
+
+                <!-- Controles de Exportación -->
+                <div class="export-controls">
+                    <h3>📄 Exportar Informe</h3>
+                    <button class="export-btn" onclick="exportToHTML()">📋 Exportar HTML</button>
+                    <button class="export-btn" onclick="exportToPDF()">📑 Generar PDF</button>
+                    <button class="export-btn" onclick="printReport()">🖨️ Imprimir</button>
+                    <button class="export-btn" onclick="exportToJSON()">💾 Exportar JSON</button>
+					<button class="export-btn" onclick="exportExecutiveSummaryToPDF()">📄 Exportar Resumen Ejecutivo</button>
+					<button id="printExecutiveBtn" onclick="printExecutiveSummary()" style="
+						position: fixed;
+						bottom: 30px;
+						right: 30px;
+						background: #007bff;
+						color: white;
+						border: none;
+						padding: 14px 20px;
+						border-radius: 50px;
+						box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
+						font-size: 1em;
+						cursor: pointer;
+						z-index: 9999;
+					">
+						🖨️ Imprimir Resumen
+					</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+function exportToJSON() {
+    if (!analysisResults || Object.keys(analysisResults).length === 0) {
+        alert('No hay resultados de análisis disponibles.');
+        return;
+    }
+
+    const blob = new Blob(
+        [JSON.stringify(analysisResults, null, 2)],
+        { type: 'application/json' }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `carpeta_analisis_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+		function renderCNPPHistogram(elementsFound) {
+    const ctx = document.getElementById('cnppChart').getContext('2d');
+
+    const labels = [];
+    const presentData = [];
+    const partialData = [];
+    const missingData = [];
+
+    Object.entries(elementsFound).forEach(([id, el]) => {
+        labels.push(cnppAnalysisConfig[id].name);
+        presentData.push(el.found && el.qualityScore >= 0.75 ? 1 : 0);
+        partialData.push(el.found && el.qualityScore < 0.75 ? 1 : 0);
+        missingData.push(!el.found ? 1 : 0);
+    });
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: '✅ Completos',
+                    data: presentData,
+                    backgroundColor: '#28a745'
+                },
+                {
+                    label: '⚠️ Parciales',
+                    data: partialData,
+                    backgroundColor: '#ffc107'
+                },
+                {
+                    label: '❌ Faltantes',
+                    data: missingData,
+                    backgroundColor: '#dc3545'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    mode: 'index'
+                }
+            }
+        }
+    });
+}
+
+
+        // Variables globales
+        let uploadedFiles = [];
+        let analysisResults = {};
+        let processedDocuments = [];
+
+        // Elementos CNPP requeridos para carpeta de investigación
+        const requiredElements = {
+            'denuncia_querella': {
+                name: 'Denuncia o Querella',
+                description: 'Documento inicial que da inicio a la investigación',
+                keywords: ['denuncia', 'querella', 'hechos', 'delito', 'narración'],
+                weight: 15,
+                required: true
+            },
+            'entrevista_victima': {
+                name: 'Entrevista de la Víctima',
+                description: 'Declaración formal de la persona ofendida',
+                keywords: ['víctima', 'ofendido', 'entrevista', 'declaración', 'testimonio'],
+                weight: 12,
+                required: true
+            },
+            'entrevista_testigos': {
+                name: 'Entrevistas de Testigos',
+                description: 'Declaraciones de personas que presenciaron los hechos',
+                keywords: ['testigo', 'presencial', 'observó', 'vio', 'escuchó'],
+                weight: 10,
+                required: false
+            },
+            'entrevista_policia': {
+                name: 'Entrevista a Policías',
+                description: 'Declaración de elementos policiales intervinientes',
+                keywords: ['policía', 'oficial', 'agente', 'elemento', 'intervención'],
+                weight: 8,
+                required: false
+            },
+            'inspeccion_lugar': {
+                name: 'Inspección del Lugar de los Hechos',
+                description: 'Registro detallado del sitio donde ocurrieron los hechos',
+                keywords: ['inspección', 'lugar', 'sitio', 'escena', 'criminalística'],
+                weight: 12,
+                required: true
+            },
+            'cadena_custodia': {
+                name: 'Cadena de Custodia',
+                description: 'Registro de manejo de evidencias y objetos',
+                keywords: ['cadena', 'custodia', 'evidencia', 'indicio', 'objeto'],
+                weight: 10,
+                required: true
+            },
+            'dictamen_pericial': {
+                name: 'Dictámenes Periciales',
+                description: 'Análisis técnico-científico de evidencias',
+                keywords: ['perito', 'dictamen', 'análisis', 'laboratorio', 'técnico'],
+                weight: 8,
+                required: false
+            },
+            'informe_investigacion': {
+                name: 'Informe de Investigación',
+                description: 'Resumen de actividades investigativas realizadas',
+                keywords: ['informe', 'investigación', 'actividades', 'diligencias'],
+                weight: 8,
+                required: true
+            },
+            'acuerdo_reparatorio': {
+                name: 'Acuerdo Reparatorio',
+                description: 'Convenio entre víctima e imputado (si aplica)',
+                keywords: ['acuerdo', 'reparatorio', 'convenio', 'reparación'],
+                weight: 5,
+                required: false
+            },
+            'orden_aprehension': {
+                name: 'Orden de Aprehensión',
+                description: 'Mandamiento judicial para detención (si aplica)',
+                keywords: ['orden', 'aprehensión', 'detención', 'mandamiento'],
+                weight: 7,
+                required: false
+            }
+        };
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+    setupFileUpload();
+    setupDragAndDrop();
+});
+
+
+        // Configuración de carga de archivos
+        function setupFileUpload() {
+    const fileInput = document.getElementById('fileInput');
+    fileInput.addEventListener('change', handleFileSelect);
+}
+
+
+        // Configuración de drag & drop
+        function setupDragAndDrop() {
+            const uploadSection = document.getElementById('uploadSection');
+            
+            uploadSection.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadSection.classList.add('dragover');
+            });
+
+            uploadSection.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadSection.classList.remove('dragover');
+            });
+
+            uploadSection.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadSection.classList.remove('dragover');
+                const files = Array.from(e.dataTransfer.files);
+                handleFiles(files);
+            });
+        }
+
+        // Manejo de selección de archivos
+       function handleFileSelect(event) {
+		const files = Array.from(event.target.files);
+		console.log('Archivos seleccionados:', files); // 👈 debug
+		handleFiles(files);
+        }
+
+        // Procesamiento de archivos
+        function handleFiles(files) {
+    const validTypes = ['.pdf', '.doc', '.docx', '.txt'];
+    
+    files.forEach(file => {
+        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+        if (validTypes.includes(fileExtension)) {
+            uploadedFiles.push({
+                file,
+                name: file.name,
+                size: file.size,
+                type: fileExtension,
+                id: Date.now() + Math.random()
+            });
+        } else {
+            alert(`Archivo ${file.name} no es compatible. Solo se aceptan PDF, DOC, DOCX y TXT.`);
+        }
+    });
+
+    console.log('Archivos válidos:', uploadedFiles); // 👈 debug
+
+    updateFileList();
+    updateAnalyzeButton();
+	}
+
+	const debugList = document.getElementById('debugFileList');
+	if (debugList) {
+		debugList.innerHTML = uploadedFiles.map(f =>
+			`<li>${f.name} - ${f.type.toUpperCase()} - ${formatFileSize(f.size)}</li>`
+		).join('');
+	}
+
+        // Actualizar lista de archivos
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            
+            if (uploadedFiles.length === 0) {
+                fileList.innerHTML = '';
+                return;
+            }
+
+            fileList.innerHTML = uploadedFiles.map(fileObj => `
+                <div class="file-item">
+                    <div class="file-info">
+                        <div class="file-name">📄 ${fileObj.name}</div>
+                        <div class="file-size">${formatFileSize(fileObj.size)} - ${fileObj.type.toUpperCase()}</div>
+                    </div>
+                    <button class="remove-btn" onclick="removeFile('${fileObj.id}')">❌</button>
+                </div>
+            `).join('');
+        }
+
+        // Remover archivo
+        function removeFile(fileId) {
+            uploadedFiles = uploadedFiles.filter(f => f.id != fileId);
+            updateFileList();
+            updateAnalyzeButton();
+        }
+
+        // Formatear tamaño de archivo
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Actualizar botón de análisis
+        function updateAnalyzeButton() {
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    analyzeBtn.disabled = uploadedFiles.length === 0;
+}
+
+
+        // Mostrar pestañas
+        function showTab(tabName) {
+            // Ocultar todos los contenidos
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Desactivar todas las pestañas
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar contenido seleccionado
+            document.getElementById(tabName).classList.add('active');
+            
+            // Activar pestaña seleccionada
+            event.target.classList.add('active');
+        }
+
+        // Iniciar análisis
+        async function startAnalysis() {
+            if (uploadedFiles.length === 0) return;
+
+            // Mostrar progreso
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('analyzeBtn').disabled = true;
+            
+            try {
+                // Procesar archivos
+                processedDocuments = [];
+                for (let i = 0; i < uploadedFiles.length; i++) {
+                    updateProgress((i / uploadedFiles.length) * 50);
+                    const processedDoc = await processDocument(uploadedFiles[i]);
+                    processedDocuments.push(processedDoc);
+                }
+
+                // Analizar contenido
+                updateProgress(60);
+                analysisResults = await analyzeDocuments(processedDocuments);
+                
+                // Generar reportes
+                updateProgress(80);
+                generateReports();
+                
+                updateProgress(100);
+                
+                // Mostrar resultados
+                document.getElementById('resultsSection').style.display = 'block';
+                document.getElementById('progressBar').style.display = 'none';
+                
+            } catch (error) {
+                console.error('Error en análisis:', error);
+                alert('Error al procesar documentos: ' + error.message);
+            } finally {
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        }
+
+        // Actualizar barra de progreso
+        function updateProgress(percentage) {
+            document.getElementById('progressFill').style.width = percentage + '%';
+        }
+
+        // Procesar documento individual
+        async function processDocument(fileObj) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = async function(e) {
+                    try {
+                        let content = '';
+                        
+                        switch (fileObj.type) {
+                            case '.txt':
+                                content = e.target.result;
+                                break;
+                            case '.pdf':
+                                content = await extractPDFText(e.target.result);
+                                break;
+                            case '.doc':
+                            case '.docx':
+                                content = await extractDOCXText(e.target.result);
+                                break;
+                        }
+
+                        // Limpiar contenido
+                        const cleanedContent = cleanDocumentContent(content);
+                        
+                        resolve({
+                            name: fileObj.name,
+                            type: fileObj.type,
+                            originalContent: content,
+                            cleanedContent: cleanedContent,
+                            wordCount: cleanedContent.split(/\s+/).length,
+                            size: fileObj.size
+                        });
+                        
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+
+                if (fileObj.type === '.txt') {
+                    reader.readAsText(fileObj.file);
+                } else {
+                    reader.readAsArrayBuffer(fileObj.file);
+                }
+            });
+        }
+		// Extraer texto de PDF
+        async function extractPDFText(arrayBuffer) {
+            try {
+                // Para PDFs usamos una aproximación básica ya que pdf-lib es más para creación
+                // En un entorno real se usaría PDF.js o similar
+                const uint8Array = new Uint8Array(arrayBuffer);
+                const text = new TextDecoder('utf-8').decode(uint8Array);
+                
+                // Buscar texto entre marcadores PDF básicos
+                let extractedText = '';
+                const textMatches = text.match(/\((.*?)\)/g);
+                if (textMatches) {
+                    extractedText = textMatches.map(match => 
+                        match.slice(1, -1).replace(/\\[rn]/g, ' ')
+                    ).join(' ');
+                }
+                
+                // Si no se encontró texto con el método básico, usar decodificación directa
+                if (!extractedText || extractedText.length < 100) {
+                    extractedText = text.replace(/[^\x20-\x7E\u00C0-\u017F\u0100-\u024F]/g, ' ')
+                                       .replace(/\s+/g, ' ')
+                                       .trim();
+                }
+                
+                return extractedText || 'No se pudo extraer texto del PDF';
+                
+            } catch (error) {
+                console.error('Error extrayendo PDF:', error);
+                return 'Error al procesar PDF: ' + error.message;
+            }
+        }
+
+        // Extraer texto de DOCX
+        async function extractDOCXText(arrayBuffer) {
+            try {
+                const result = await mammoth.extractRawText({arrayBuffer: arrayBuffer});
+                return result.value || 'No se pudo extraer texto del documento';
+            } catch (error) {
+                console.error('Error extrayendo DOCX:', error);
+                return 'Error al procesar documento: ' + error.message;
+            }
+        }
+
+        // Limpiar contenido del documento
+        function cleanDocumentContent(content) {
+            if (!content || typeof content !== 'string') {
+                return '';
+            }
+
+            let cleanedContent = content;
+
+            // 1. Remover encabezados comunes de procuradurías y fiscalías
+            const headerPatterns = [
+                /PROCURADURÍA\s+GENERAL\s+DE\s+JUSTICIA[\s\S]*?(?=\n\n|\r\r)/gi,
+                /FISCALÍA\s+GENERAL\s+DEL\s+ESTADO[\s\S]*?(?=\n\n|\r\r)/gi,
+                /MINISTERIO\s+PÚBLICO[\s\S]*?(?=\n\n|\r\r)/gi,
+                /GOBIERNO\s+DEL\s+ESTADO[\s\S]*?(?=\n\n|\r\r)/gi,
+                /SUBPROCURADURÍA[\s\S]*?(?=\n\n|\r\r)/gi,
+                /COORDINACIÓN\s+GENERAL[\s\S]*?(?=\n\n|\r\r)/gi
+            ];
+
+            headerPatterns.forEach(pattern => {
+                cleanedContent = cleanedContent.replace(pattern, '');
+            });
+
+            // 2. Remover pies de página y información administrativa
+            const footerPatterns = [
+                /Página\s+\d+\s+de\s+\d+/gi,
+                /Folio\s*:?\s*\d+/gi,
+                /Expediente\s*:?\s*[\w\-\/\d]+/gi,
+                /www\.[\w\.]+/gi,
+                /Tel(?:éfono)?[\s.:]*\d+[\d\s\-\(\)]+/gi,
+                /Ext(?:ensión)?[\s.:]*\d+/gi,
+                /C\.P\.\s*\d{5}/gi
+            ];
+
+            footerPatterns.forEach(pattern => {
+                cleanedContent = cleanedContent.replace(pattern, '');
+            });
+
+            // 3. Remover logos y elementos gráficos (representados como texto especial)
+            const logoPatterns = [
+                /\[LOGO\]|\[IMAGE\]|\[GRAPHIC\]/gi,
+                /═+|─+|│+/g,
+                /█+|▄+|▀+/g,
+                /\*{3,}|#{3,}|={3,}/g
+            ];
+
+            logoPatterns.forEach(pattern => {
+                cleanedContent = cleanedContent.replace(pattern, '');
+            });
+
+            // 4. Limpiar direcciones y datos de contacto repetitivos
+            const contactPatterns = [
+                /Domicilio[\s\S]*?(?=\n[A-Z]|\n\n)/gi,
+                /Dirección[\s\S]*?(?=\n[A-Z]|\n\n)/gi,
+                /Ubicación[\s\S]*?(?=\n[A-Z]|\n\n)/gi,
+                /Col(?:onia)?\.?\s+[\w\s]+,?\s*C\.P\.\s*\d{5}/gi
+            ];
+
+            contactPatterns.forEach(pattern => {
+                cleanedContent = cleanedContent.replace(pattern, '');
+            });
+
+            // 5. Remover sellos y firmas digitales
+            const sealPatterns = [
+                /SELLO\s+DIGITAL[\s\S]*?(?=\n[A-Z]|\n\n)/gi,
+                /FIRMA\s+ELECTR[ÓO]NICA[\s\S]*?(?=\n[A-Z]|\n\n)/gi,
+                /CADENA\s+ORIGINAL[\s\S]*?(?=\n[A-Z]|\n\n)/gi,
+                /CERTIFICADO\s+DIGITAL[\s\S]*?(?=\n[A-Z]|\n\n)/gi,
+                /[A-F0-9]{40,}/g // Hashes largos
+            ];
+
+            sealPatterns.forEach(pattern => {
+                cleanedContent = cleanedContent.replace(pattern, '');
+            });
+
+            // 6. Limpiar formatos de fecha y hora redundantes
+            cleanedContent = cleanedContent.replace(
+                /\b\d{1,2}\/\d{1,2}\/\d{4}\s+\d{1,2}:\d{2}:\d{2}\s+(AM|PM)\b/g,
+                match => match.split(/\s+/)[0] // Mantener solo la fecha
+            );
+
+            // 7. Normalizar espacios y saltos de línea
+            cleanedContent = cleanedContent
+                .replace(/\r\n/g, '\n')           // Normalizar saltos de línea
+                .replace(/\n{3,}/g, '\n\n')      // Máximo 2 saltos consecutivos
+                .replace(/[ \t]{2,}/g, ' ')      // Múltiples espacios a uno
+                .replace(/^\s+|\s+$/gm, '')      // Espacios al inicio/final de líneas
+                .trim();
+
+            // 8. Remover líneas muy cortas que probablemente sean fragmentos
+            const lines = cleanedContent.split('\n');
+            const meaningfulLines = lines.filter(line => {
+                const trimmedLine = line.trim();
+                return trimmedLine.length > 3 && 
+                       !/^[\d\.\-\s]+$/.test(trimmedLine) && // No solo números
+                       !/^[^\w]{1,5}$/.test(trimmedLine);   // No solo símbolos
+            });
+
+            cleanedContent = meaningfulLines.join('\n');
+
+            // 9. Preservar estructura de párrafos importantes
+            cleanedContent = preserveImportantStructure(cleanedContent);
+
+            return cleanedContent;
+        }
+
+        // Preservar estructura importante del documento
+        function preserveImportantStructure(content) {
+            // Identificar y preservar secciones importantes
+            const importantSections = [
+                'HECHOS',
+                'ANTECEDENTES',
+                'CONSIDERANDOS',
+                'DECLARACIÓN',
+                'TESTIMONIO',
+                'INSPECCIÓN',
+                'DICTAMEN',
+                'CONCLUSIONES',
+                'DETERMINACIÓN',
+                'ACUERDO',
+                'RESOLUCIÓN'
+            ];
+
+            let structuredContent = content;
+
+            // Agregar marcadores para secciones importantes
+            importantSections.forEach(section => {
+                const regex = new RegExp(`\\b${section}\\b`, 'gi');
+                structuredContent = structuredContent.replace(regex, `\n\n=== ${section} ===\n`);
+            });
+
+            return structuredContent;
+        }
+
+        // Identificar tipo de documento por contenido
+        function identifyDocumentType(content) {
+            const documentTypes = {
+                'denuncia': {
+                    keywords: ['denuncia', 'querella', 'hechos delictuosos', 'narración'],
+                    patterns: [/DENUNCIA\s+(PENAL)?/gi, /QUERELLA/gi]
+                },
+                'entrevista': {
+                    keywords: ['entrevista', 'declaración', 'manifiesta', 'refiere'],
+                    patterns: [/ENTREVISTA\s+A/gi, /DECLARACIÓN\s+DE/gi]
+                },
+                'inspeccion': {
+                    keywords: ['inspección', 'lugar de los hechos', 'escena', 'criminalística'],
+                    patterns: [/INSPECCIÓN\s+DEL\s+LUGAR/gi, /ESCENA\s+DEL\s+CRIMEN/gi]
+                },
+                'dictamen': {
+                    keywords: ['dictamen', 'peritaje', 'análisis', 'laboratorio'],
+                    patterns: [/DICTAMEN\s+PERICIAL/gi, /ANÁLISIS\s+TÉCNICO/gi]
+                },
+                'informe': {
+                    keywords: ['informe', 'investigación', 'actividades', 'diligencias'],
+                    patterns: [/INFORME\s+DE\s+INVESTIGACIÓN/gi]
+                },
+                'acta': {
+                    keywords: ['acta', 'fe pública', 'certifico', 'consta'],
+                    patterns: [/ACTA\s+DE/gi, /DOY\s+FE/gi]
+                }
+            };
+
+            const scores = {};
+            
+            for (const [type, config] of Object.entries(documentTypes)) {
+                let score = 0;
+                
+                // Puntuación por patrones específicos
+                config.patterns.forEach(pattern => {
+                    const matches = content.match(pattern);
+                    if (matches) score += matches.length * 10;
+                });
+                
+                // Puntuación por palabras clave
+                config.keywords.forEach(keyword => {
+                    const regex = new RegExp(keyword, 'gi');
+                    const matches = content.match(regex);
+                    if (matches) score += matches.length * 2;
+                });
+                
+                scores[type] = score;
+            }
+
+            // Encontrar el tipo con mayor puntuación
+            const maxScore = Math.max(...Object.values(scores));
+            const detectedType = Object.keys(scores).find(key => scores[key] === maxScore);
+
+            return {
+                type: detectedType,
+                confidence: maxScore > 5 ? 'high' : maxScore > 2 ? 'medium' : 'low',
+                scores: scores
+            };
+        }
+
+        // Extraer fechas del documento
+        function extractDates(content) {
+            const datePatterns = [
+                /\b\d{1,2}\s+de\s+\w+\s+de\s+\d{4}\b/g,
+                /\b\d{1,2}\/\d{1,2}\/\d{4}\b/g,
+                /\b\d{4}-\d{2}-\d{2}\b/g,
+                /\b\d{1,2}\s+\w+\s+\d{4}\b/g
+            ];
+
+            const dates = [];
+            datePatterns.forEach(pattern => {
+                const matches = content.match(pattern);
+                if (matches) {
+                    dates.push(...matches);
+                }
+            });
+
+            return [...new Set(dates)]; // Remover duplicados
+        }
+
+        // Extraer nombres y entidades
+        function extractEntities(content) {
+            const entities = {
+                names: [],
+                places: [],
+                organizations: [],
+                legal_references: []
+            };
+
+            // Patrones para nombres (después de títulos como C., LIC., DR., etc.)
+            const namePatterns = [
+                /\b(?:C\.|LIC\.|DR\.|ING\.|MTRO\.)\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*)/g,
+                /\b([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)?)\s+(?:manifiesta|declara|refiere)/g
+            ];
+
+            namePatterns.forEach(pattern => {
+                const matches = content.match(pattern);
+                if (matches) {
+                    matches.forEach(match => {
+                        const name = match.replace(/^(?:C\.|LIC\.|DR\.|ING\.|MTRO\.)\s+/, '').trim();
+                        if (name.length > 3) entities.names.push(name);
+                    });
+                }
+            });
+
+            // Patrones para lugares
+            const placePatterns = [
+                /\ben\s+(?:la\s+)?(?:ciudad\s+de\s+|municipio\s+de\s+)?([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*)/g,
+                /\bcalle\s+([^,\n]+)/gi,
+                /\bcolonia\s+([^,\n]+)/gi,
+                /\bavenida\s+([^,\n]+)/gi
+            ];
+
+            placePatterns.forEach(pattern => {
+                const matches = content.match(pattern);
+                if (matches) {
+                    matches.forEach(match => {
+                        const place = match.replace(/^(?:en\s+(?:la\s+)?(?:ciudad\s+de\s+|municipio\s+de\s+)?|calle\s+|colonia\s+|avenida\s+)/i, '').trim();
+                        if (place.length > 2) entities.places.push(place);
+                    });
+                }
+            });
+
+            // Patrones para referencias legales
+            const legalPatterns = [
+                /\bartículo\s+\d+(?:\s+bis)?(?:\s+fracción\s+[IVX]+)?/gi,
+                /\bCódigo\s+(?:Penal|Civil|Nacional|Federal)/gi,
+                /\bLey\s+[^,\n\.]+/gi,
+                /\bCNPP/gi,
+                /\brequisitos\s+del\s+artículo\s+\d+/gi
+            ];
+
+            legalPatterns.forEach(pattern => {
+                const matches = content.match(pattern);
+                if (matches) {
+                    entities.legal_references.push(...matches);
+                }
+            });
+
+            // Limpiar duplicados
+            Object.keys(entities).forEach(key => {
+                entities[key] = [...new Set(entities[key])];
+            });
+
+            return entities;
+        }
+
+        // Extraer información tabular
+        function extractTabularData(content) {
+            const tables = [];
+            const lines = content.split('\n');
+            
+            let currentTable = [];
+            let inTable = false;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Detectar inicio de tabla (líneas con múltiples separadores)
+                if (line.includes('|') || line.includes('\t') || 
+                    (line.match(/\s{3,}/g) && line.match(/\s{3,}/g).length > 2)) {
+                    
+                    if (!inTable) {
+                        inTable = true;
+                        currentTable = [];
+                    }
+                    
+                    // Procesar línea de tabla
+                    const cells = line.split(/[\|\t]|\s{3,}/).map(cell => cell.trim()).filter(cell => cell);
+                    if (cells.length > 1) {
+                        currentTable.push(cells);
+                    }
+                } else {
+                    if (inTable && currentTable.length > 0) {
+                        tables.push({
+                            rows: currentTable,
+                            location: i - currentTable.length,
+                            headers: currentTable[0] || []
+                        });
+                        inTable = false;
+                    }
+                }
+            }
+
+            return tables;
+        }
+
+        // Función principal mejorada de procesamiento
+        async function processDocument(fileObj) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = async function(e) {
+                    try {
+                        let content = '';
+                        
+                        switch (fileObj.type) {
+                            case '.txt':
+                                content = e.target.result;
+                                break;
+                            case '.pdf':
+                                content = await extractPDFText(e.target.result);
+                                break;
+                            case '.doc':
+                            case '.docx':
+                                content = await extractDOCXText(e.target.result);
+                                break;
+                        }
+
+                        // Limpiar contenido
+                        const cleanedContent = cleanDocumentContent(content);
+                        
+                        // Análisis avanzado del documento
+                        const documentType = identifyDocumentType(cleanedContent);
+                        const extractedDates = extractDates(cleanedContent);
+                        const entities = extractEntities(cleanedContent);
+                        const tabularData = extractTabularData(cleanedContent);
+                        
+                        // Estadísticas del documento
+                        const stats = {
+                            originalLength: content.length,
+                            cleanedLength: cleanedContent.length,
+                            wordsRemoved: content.split(/\s+/).length - cleanedContent.split(/\s+/).length,
+                            wordCount: cleanedContent.split(/\s+/).filter(word => word.length > 0).length,
+                            paragraphCount: cleanedContent.split(/\n\n/).length,
+                            sentenceCount: cleanedContent.split(/[.!?]+/).length - 1
+                        };
+                        
+                        resolve({
+                            name: fileObj.name,
+                            type: fileObj.type,
+                            originalContent: content,
+                            cleanedContent: cleanedContent,
+                            documentType: documentType,
+                            dates: extractedDates,
+                            entities: entities,
+                            tabularData: tabularData,
+                            statistics: stats,
+                            size: fileObj.size,
+                            processingDate: new Date().toISOString()
+                        });
+                        
+                    } catch (error) {
+                        reject(new Error(`Error procesando ${fileObj.name}: ${error.message}`));
+                    }
+                };
+
+                reader.onerror = function(error) {
+                    reject(new Error(`Error leyendo archivo ${fileObj.name}: ${error.message}`));
+                };
+
+                if (fileObj.type === '.txt') {
+                    reader.readAsText(fileObj.file, 'utf-8');
+                } else {
+                    reader.readAsArrayBuffer(fileObj.file);
+                }
+            });
+        }
+
+        // MOTOR DE ANÁLISIS CNPP
+        
+        // Configuración avanzada de elementos CNPP con criterios específicos
+        const cnppAnalysisConfig = {
+            'denuncia_querella': {
+                name: 'Denuncia o Querella',
+                description: 'Documento inicial que da inicio a la investigación (Art. 131 CNPP)',
+                weight: 15,
+                required: true,
+                minConfidence: 0.7,
+                patterns: [
+                    /DENUNCIA\s+(PENAL)?/gi,
+                    /QUERELLA/gi,
+                    /HECHOS\s+DELICTUOSOS/gi,
+                    /PRESUNTA\s+COMISIÓN/gi
+                ],
+                keywords: ['denuncia', 'querella', 'hechos', 'delito', 'narración', 'presunta comisión'],
+                qualityChecks: [
+                    { criterion: 'narration_facts', description: 'Narración clara de los hechos' },
+                    { criterion: 'date_time', description: 'Fecha y hora de los hechos' },
+                    { criterion: 'place', description: 'Lugar donde ocurrieron los hechos' },
+                    { criterion: 'complainant_data', description: 'Datos del denunciante' }
+                ]
+            },
+            'entrevista_victima': {
+                name: 'Entrevista de la Víctima u Ofendido',
+                description: 'Declaración formal de la persona ofendida (Art. 131 Fr. II CNPP)',
+                weight: 12,
+                required: true,
+                minConfidence: 0.6,
+                patterns: [
+                    /ENTREVISTA\s+(?:A\s+)?(?:LA\s+)?V[ÍI]CTIMA/gi,
+                    /ENTREVISTA\s+(?:AL?\s+)?OFENDIDO/gi,
+                    /DECLARACI[ÓO]N\s+DE\s+(?:LA\s+)?V[ÍI]CTIMA/gi,
+                    /TESTIMONIO\s+DE\s+(?:LA\s+)?V[ÍI]CTIMA/gi
+                ],
+                keywords: ['víctima', 'ofendido', 'entrevista', 'declaración', 'testimonio', 'afectado'],
+                qualityChecks: [
+                    { criterion: 'victim_identification', description: 'Identificación completa de la víctima' },
+                    { criterion: 'facts_relation', description: 'Relación detallada de los hechos' },
+                    { criterion: 'damage_description', description: 'Descripción del daño o afectación' },
+                    { criterion: 'aggressor_identification', description: 'Identificación del agresor (si es posible)' }
+                ]
+            },
+            'entrevista_testigos': {
+                name: 'Entrevistas de Testigos',
+                description: 'Declaraciones de personas que presenciaron los hechos',
+                weight: 10,
+                required: false,
+                minConfidence: 0.5,
+                patterns: [
+                    /ENTREVISTA\s+(?:A\s+)?TESTIGO/gi,
+                    /DECLARACI[ÓO]N\s+(?:DE\s+)?TESTIGO/gi,
+                    /TESTIMONIO\s+(?:DE\s+)?TESTIGO/gi,
+                    /TESTIGO\s+PRESENCIAL/gi
+                ],
+                keywords: ['testigo', 'presencial', 'observó', 'vio', 'escuchó', 'presenció'],
+                qualityChecks: [
+                    { criterion: 'witness_identification', description: 'Identificación del testigo' },
+                    { criterion: 'facts_observation', description: 'Descripción de lo observado' },
+                    { criterion: 'temporal_reference', description: 'Referencia temporal de los hechos' },
+                    { criterion: 'credibility_elements', description: 'Elementos que den credibilidad' }
+                ]
+            },
+            'entrevista_policia': {
+                name: 'Entrevista a Elementos Policiales',
+                description: 'Declaración de policías que intervinieron en los hechos',
+                weight: 8,
+                required: false,
+                minConfidence: 0.6,
+                patterns: [
+                    /ENTREVISTA\s+(?:A\s+)?POLIC[ÍI]A/gi,
+                    /DECLARACI[ÓO]N\s+POLICIAL/gi,
+                    /INFORME\s+POLICIAL/gi,
+                    /PARTE\s+INFORMATIVO/gi
+                ],
+                keywords: ['policía', 'oficial', 'agente', 'elemento', 'intervención', 'patrulla'],
+                qualityChecks: [
+                    { criterion: 'officer_identification', description: 'Identificación del elemento policial' },
+                    { criterion: 'intervention_description', description: 'Descripción de la intervención' },
+                    { criterion: 'procedure_followed', description: 'Procedimiento seguido' },
+                    { criterion: 'evidence_secured', description: 'Evidencias aseguradas' }
+                ]
+            },
+            'inspeccion_lugar': {
+                name: 'Inspección del Lugar de los Hechos',
+                description: 'Registro detallado del sitio donde ocurrieron los hechos (Art. 131 Fr. III CNPP)',
+                weight: 12,
+                required: true,
+                minConfidence: 0.7,
+                patterns: [
+                    /INSPECCI[ÓO]N\s+(?:DEL\s+)?LUGAR/gi,
+                    /INSPECCI[ÓO]N\s+(?:DE\s+LA\s+)?ESCENA/gi,
+                    /LUGAR\s+DE\s+(?:LOS\s+)?HECHOS/gi,
+                    /ESCENA\s+DEL\s+CRIMEN/gi
+                ],
+                keywords: ['inspección', 'lugar', 'sitio', 'escena', 'criminalística', 'evidencia'],
+                qualityChecks: [
+                    { criterion: 'location_description', description: 'Descripción detallada del lugar' },
+                    { criterion: 'evidence_collection', description: 'Recolección de evidencias' },
+                    { criterion: 'photographic_record', description: 'Registro fotográfico' },
+                    { criterion: 'sketch_plan', description: 'Planimetría o croquis' }
+                ]
+            },
+            'cadena_custodia': {
+                name: 'Registro de Cadena de Custodia',
+                description: 'Control de evidencias y objetos relacionados (Art. 131 Fr. IV CNPP)',
+                weight: 10,
+                required: true,
+                minConfidence: 0.8,
+                patterns: [
+                    /CADENA\s+DE\s+CUSTODIA/gi,
+                    /REGISTRO\s+DE\s+EVIDENCIA/gi,
+                    /CONTROL\s+DE\s+INDICIOS/gi,
+                    /ASEGURAMIENTO\s+DE\s+OBJETOS/gi
+                ],
+                keywords: ['cadena', 'custodia', 'evidencia', 'indicio', 'objeto', 'aseguramiento'],
+                qualityChecks: [
+                    { criterion: 'evidence_identification', description: 'Identificación de evidencias' },
+                    { criterion: 'chain_continuity', description: 'Continuidad de la cadena' },
+                    { criterion: 'responsible_persons', description: 'Personas responsables' },
+                    { criterion: 'storage_conditions', description: 'Condiciones de almacenamiento' }
+                ]
+            },
+            'dictamen_pericial': {
+                name: 'Dictámenes Periciales',
+                description: 'Análisis técnico-científico de evidencias',
+                weight: 8,
+                required: false,
+                minConfidence: 0.7,
+                patterns: [
+                    /DICTAMEN\s+PERICIAL/gi,
+                    /PERITAJE/gi,
+                    /AN[ÁA]LISIS\s+T[ÉE]CNICO/gi,
+                    /LABORATORIO/gi
+                ],
+                keywords: ['perito', 'dictamen', 'análisis', 'laboratorio', 'técnico', 'científico'],
+                qualityChecks: [
+                    { criterion: 'expert_qualification', description: 'Calificación del perito' },
+                    { criterion: 'methodology_description', description: 'Metodología empleada' },
+                    { criterion: 'results_analysis', description: 'Análisis de resultados' },
+                    { criterion: 'conclusions', description: 'Conclusiones técnicas' }
+                ]
+            },
+            'informe_investigacion': {
+                name: 'Informe de Investigación',
+                description: 'Resumen de actividades investigativas realizadas',
+                weight: 8,
+                required: true,
+                minConfidence: 0.6,
+                patterns: [
+                    /INFORME\s+DE\s+INVESTIGACI[ÓO]N/gi,
+                    /ACTIVIDADES\s+DE\s+INVESTIGACI[ÓO]N/gi,
+                    /DILIGENCIAS\s+REALIZADAS/gi,
+                    /RESUMEN\s+DE\s+ACTUACIONES/gi
+                ],
+                keywords: ['informe', 'investigación', 'actividades', 'diligencias', 'actuaciones'],
+                qualityChecks: [
+                    { criterion: 'activities_summary', description: 'Resumen de actividades' },
+                    { criterion: 'results_obtained', description: 'Resultados obtenidos' },
+                    { criterion: 'pending_actions', description: 'Acciones pendientes' },
+                    { criterion: 'legal_framework', description: 'Fundamento legal' }
+                ]
+            }
+        };
+
+        // Analizar documentos procesados
+        async function analyzeDocuments(documents) {
+            const analysis = {
+                totalDocuments: documents.length,
+                documentTypes: {},
+                elementsFound: {},
+                overallScore: 0,
+                judicializationLevel: 'INSUFICIENTE',
+                recommendations: [],
+                timeline: [],
+                entities: { names: [], places: [], references: [] },
+                qualityAssessment: {},
+                missingElements: [],
+                criticalIssues: [],
+                legalCompliance: {},
+                processingDate: new Date().toISOString()
+            };
+
+            // Consolidar entidades de todos los documentos
+            documents.forEach(doc => {
+                if (doc.entities) {
+                    analysis.entities.names.push(...doc.entities.names);
+                    analysis.entities.places.push(...doc.entities.places);
+                    analysis.entities.references.push(...doc.entities.legal_references);
+                }
+                if (doc.dates) {
+                    analysis.timeline.push(...doc.dates.map(date => ({ date, document: doc.name })));
+                }
+            });
+
+            // Eliminar duplicados
+            Object.keys(analysis.entities).forEach(key => {
+                analysis.entities[key] = [...new Set(analysis.entities[key])];
+            });
+
+            // Analizar cada elemento CNPP
+            for (const [elementId, config] of Object.entries(cnppAnalysisConfig)) {
+                const elementAnalysis = analyzeElement(elementId, config, documents);
+                analysis.elementsFound[elementId] = elementAnalysis;
+                
+                if (!elementAnalysis.found && config.required) {
+                    analysis.missingElements.push({
+                        element: config.name,
+                        description: config.description,
+                        impact: 'ALTO',
+                        recommendation: generateRecommendation(elementId, config)
+                    });
+                }
+            }
+
+            // Calcular puntuación general
+            analysis.overallScore = calculateOverallScore(analysis.elementsFound);
+            analysis.judicializationLevel = determineJudicializationLevel(analysis.overallScore);
+            
+            // Evaluación de cumplimiento legal
+            analysis.legalCompliance = assessLegalCompliance(analysis.elementsFound);
+            
+            // Generar recomendaciones
+            analysis.recommendations = generateRecommendations(analysis);
+            
+            // Identificar problemas críticos
+            analysis.criticalIssues = identifyCriticalIssues(analysis);
+
+            return analysis;
+        }
+
+        // Analizar elemento específico
+        function analyzeElement(elementId, config, documents) {
+            const analysis = {
+                found: false,
+                confidence: 0,
+                matchingDocuments: [],
+                qualityScore: 0,
+                qualityChecks: {},
+                issues: [],
+                weight: config.weight,
+                required: config.required,
+                details: {}
+            };
+
+            let maxConfidence = 0;
+            let bestMatch = null;
+
+            documents.forEach(doc => {
+                const confidence = calculateElementConfidence(config, doc);
+                
+                if (confidence > config.minConfidence) {
+                    analysis.found = true;
+                    analysis.matchingDocuments.push({
+                        name: doc.name,
+                        confidence: confidence,
+                        type: doc.documentType?.type
+                    });
+
+                    if (confidence > maxConfidence) {
+                        maxConfidence = confidence;
+                        bestMatch = doc;
+                    }
+                }
+            });
+
+            analysis.confidence = maxConfidence;
+
+            // Si se encontró el elemento, evaluar calidad
+            if (analysis.found && bestMatch) {
+                const qualityEvaluation = evaluateElementQuality(config, bestMatch);
+                analysis.qualityScore = qualityEvaluation.score;
+                analysis.qualityChecks = qualityEvaluation.checks;
+                analysis.issues = qualityEvaluation.issues;
+                analysis.details = extractElementDetails(config, bestMatch);
+            }
+
+            return analysis;
+        }
+
+        // Calcular confianza de elemento
+        function calculateElementConfidence(config, document) {
+            let confidence = 0;
+            const content = document.cleanedContent.toLowerCase();
+
+            // Puntuación por patrones específicos
+            config.patterns.forEach(pattern => {
+                const matches = document.cleanedContent.match(pattern);
+                if (matches) {
+                    confidence += matches.length * 0.3;
+                }
+            });
+
+            // Puntuación por palabras clave
+            config.keywords.forEach(keyword => {
+                const keywordRegex = new RegExp(`\\b${keyword}\\b`, 'gi');
+                const matches = content.match(keywordRegex);
+                if (matches) {
+                    confidence += matches.length * 0.1;
+                }
+            });
+
+            // Bonus por tipo de documento detectado
+            if (document.documentType && document.documentType.confidence === 'high') {
+                const typeMap = {
+                    'denuncia': ['denuncia_querella'],
+                    'entrevista': ['entrevista_victima', 'entrevista_testigos', 'entrevista_policia'],
+                    'inspeccion': ['inspeccion_lugar'],
+                    'dictamen': ['dictamen_pericial'],
+                    'informe': ['informe_investigacion']
+                };
+
+                for (const [docType, elements] of Object.entries(typeMap)) {
+                    if (document.documentType.type === docType && elements.includes(config.name.toLowerCase().replace(/\s+/g, '_'))) {
+                        confidence += 0.2;
+                    }
+                }
+            }
+
+            return Math.min(confidence, 1.0); // Máximo 1.0
+        }
+
+        // Evaluar calidad del elemento
+        function evaluateElementQuality(config, document) {
+            const evaluation = {
+                score: 0,
+                checks: {},
+                issues: []
+            };
+
+            const content = document.cleanedContent.toLowerCase();
+            const totalChecks = config.qualityChecks.length;
+            let passedChecks = 0;
+
+            config.qualityChecks.forEach(check => {
+                const result = performQualityCheck(check, document);
+                evaluation.checks[check.criterion] = result;
+                if (result.passed) passedChecks++;
+                if (!result.passed) evaluation.issues.push(result.issue);
+            });
+
+            evaluation.score = totalChecks > 0 ? (passedChecks / totalChecks) : 0.5;
+
+            return evaluation;
+        }
+
+        // Realizar verificación de calidad específica
+        function performQualityCheck(check, document) {
+            const content = document.cleanedContent.toLowerCase();
+            const result = { passed: false, score: 0, issue: null };
+
+            switch (check.criterion) {
+                case 'narration_facts':
+                    result.passed = content.includes('hechos') && content.length > 500;
+                    result.issue = result.passed ? null : 'Narración de hechos insuficiente o ausente';
+                    break;
+
+                case 'date_time':
+                    result.passed = document.dates && document.dates.length > 0;
+                    result.issue = result.passed ? null : 'Falta fecha y hora de los hechos';
+                    break;
+
+                case 'place':
+                    result.passed = document.entities.places && document.entities.places.length > 0;
+                    result.issue = result.passed ? null : 'No se especifica lugar de los hechos';
+                    break;
+
+                case 'complainant_data':
+                    result.passed = document.entities.names && document.entities.names.length > 0;
+                    result.issue = result.passed ? null : 'Datos del denunciante incompletos';
+                    break;
+
+                case 'victim_identification':
+                    result.passed = content.includes('víctima') || content.includes('ofendido');
+                    result.issue = result.passed ? null : 'Identificación de víctima insuficiente';
+                    break;
+
+                case 'evidence_collection':
+                    result.passed = content.includes('evidencia') || content.includes('indicio');
+                    result.issue = result.passed ? null : 'No se documenta recolección de evidencias';
+                    break;
+
+                case 'chain_continuity':
+                    result.passed = content.includes('cadena') && content.includes('custodia');
+                    result.issue = result.passed ? null : 'Cadena de custodia incompleta';
+                    break;
+
+                default:
+                    result.passed = true; // Por defecto pasa si no hay criterio específico
+            }
+
+            return result;
+        }
+
+        // Calcular puntuación general
+        function calculateOverallScore(elementsFound) {
+            let totalWeight = 0;
+            let weightedScore = 0;
+
+            for (const [elementId, analysis] of Object.entries(elementsFound)) {
+                const config = cnppAnalysisConfig[elementId];
+                if (config) {
+                    totalWeight += config.weight;
+                    
+                    if (analysis.found) {
+                        const elementScore = analysis.confidence * analysis.qualityScore * config.weight;
+                        weightedScore += elementScore;
+                    }
+                }
+            }
+
+            return totalWeight > 0 ? Math.round((weightedScore / totalWeight) * 100) : 0;
+        }
+
+        // Determinar nivel de judicialización
+        function determineJudicializationLevel(score) {
+            if (score >= 80) return 'EXCELENTE';
+            if (score >= 65) return 'BUENO';
+            if (score >= 50) return 'REGULAR';
+            if (score >= 35) return 'DEFICIENTE';
+            return 'INSUFICIENTE';
+        }
+
+        // Evaluar cumplimiento legal
+        function assessLegalCompliance(elementsFound) {
+            const compliance = {
+                cnpp131: { compliant: true, issues: [] },
+                minimumRequirements: { met: true, missing: [] },
+                recommendedElements: { present: 0, total: 0 },
+                overallCompliance: 'CUMPLE'
+            };
+
+            // Verificar elementos obligatorios del Art. 131 CNPP
+            const requiredElements = Object.entries(cnppAnalysisConfig)
+                .filter(([id, config]) => config.required);
+
+            requiredElements.forEach(([elementId, config]) => {
+                compliance.minimumRequirements.total++;
+                
+                const analysis = elementsFound[elementId];
+                if (!analysis || !analysis.found || analysis.confidence < config.minConfidence) {
+                    compliance.cnpp131.compliant = false;
+                    compliance.minimumRequirements.met = false;
+                    compliance.cnpp131.issues.push(`Falta: ${config.name}`);
+                    compliance.minimumRequirements.missing.push(config.name);
+                } else {
+                    compliance.minimumRequirements.present++;
+                }
+            });
+
+            // Evaluar elementos recomendados
+            const recommendedElements = Object.entries(cnppAnalysisConfig)
+                .filter(([id, config]) => !config.required);
+
+            compliance.recommendedElements.total = recommendedElements.length;
+            recommendedElements.forEach(([elementId, config]) => {
+                const analysis = elementsFound[elementId];
+                if (analysis && analysis.found && analysis.confidence >= config.minConfidence) {
+                    compliance.recommendedElements.present++;
+                }
+            });
+
+            // Determinar cumplimiento general
+            if (!compliance.cnpp131.compliant) {
+                compliance.overallCompliance = 'NO CUMPLE';
+            } else if (compliance.recommendedElements.present < compliance.recommendedElements.total * 0.5) {
+                compliance.overallCompliance = 'CUMPLE MÍNIMO';
+            } else {
+                compliance.overallCompliance = 'CUMPLE COMPLETAMENTE';
+            }
+
+            return compliance;
+        }
+
+        // Generar recomendaciones
+        function generateRecommendations(analysis) {
+            const recommendations = [];
+
+            // Recomendaciones por elementos faltantes
+            analysis.missingElements.forEach(missing => {
+                recommendations.push({
+                    type: 'FALTANTE',
+                    priority: 'ALTA',
+                    title: `Integrar ${missing.element}`,
+                    description: missing.recommendation,
+                    legalBasis: missing.description
+                });
+            });
+
+            // Recomendaciones por calidad
+            Object.entries(analysis.elementsFound).forEach(([elementId, elementAnalysis]) => {
+                if (elementAnalysis.found && elementAnalysis.qualityScore < 0.7) {
+                    const config = cnppAnalysisConfig[elementId];
+                    recommendations.push({
+                        type: 'MEJORA',
+                        priority: 'MEDIA',
+                        title: `Mejorar calidad de ${config.name}`,
+                        description: `Se requiere mejorar la calidad del documento: ${elementAnalysis.issues.join(', ')}`,
+                        legalBasis: config.description
+                    });
+                }
+            });
+
+            // Recomendaciones por puntuación general
+            if (analysis.overallScore < 50) {
+                recommendations.push({
+                    type: 'CRÍTICA',
+                    priority: 'ALTA',
+                    title: 'Carpeta de investigación insuficiente',
+                    description: 'La carpeta no cumple con los requisitos mínimos para imputación',
+                    legalBasis: 'Art. 131 CNPP - Integración de la investigación'
+                });
+            }
+
+            return recommendations.sort((a, b) => {
+                const priorityOrder = { 'ALTA': 3, 'MEDIA': 2, 'BAJA': 1 };
+                return priorityOrder[b.priority] - priorityOrder[a.priority];
+            });
+        }
+
+        // Identificar problemas críticos
+        function identifyCriticalIssues(analysis) {
+            const issues = [];
+
+            // Verificar elementos obligatorios faltantes
+            const missingRequired = analysis.missingElements.filter(el => el.impact === 'ALTO');
+            if (missingRequired.length > 0) {
+                issues.push({
+                    type: 'ELEMENTOS_FALTANTES',
+                    severity: 'CRÍTICO',
+                    description: `Faltan ${missingRequired.length} elementos obligatorios`,
+                    impact: 'Impide la imputación',
+                    elements: missingRequired.map(el => el.element)
+                });
+            }
+
+            // Verificar calidad general
+            if (analysis.overallScore < 35) {
+                issues.push({
+                    type: 'CALIDAD_INSUFICIENTE',
+                    severity: 'CRÍTICO',
+                    description: 'Calidad general de la carpeta insuficiente',
+                    impact: 'Alta probabilidad de improcedencia',
+                    score: analysis.overallScore
+                });
+            }
+
+            // Verificar cadena de custodia
+            const custodyAnalysis = analysis.elementsFound['cadena_custodia'];
+            if (!custodyAnalysis || !custodyAnalysis.found) {
+                issues.push({
+                    type: 'CADENA_CUSTODIA',
+                    severity: 'ALTO',
+                    description: 'Falta documentación de cadena de custodia',
+                    impact: 'Evidencias pueden ser declaradas inválidas'
+                });
+            }
+
+            return issues;
+        }
+
+        // Generar recomendación específica
+        function generateRecommendation(elementId, config) {
+            const recommendations = {
+                'denuncia_querella': 'Integrar denuncia o querella formal con narración clara de los hechos, identificación del denunciante y circunstancias de tiempo, modo y lugar.',
+                'entrevista_victima': 'Realizar entrevista formal a la víctima con preguntas estructuradas sobre los hechos, daños sufridos y identificación del probable responsable.',
+                'entrevista_testigos': 'Recabar testimonios de personas que presenciaron los hechos o tengan conocimiento relevante para la investigación.',
+                'entrevista_policia': 'Obtener declaración de los elementos policiales que intervinieron en el caso, detallando sus observaciones y actuaciones.',
+                'inspeccion_lugar': 'Realizar inspección detallada del lugar de los hechos con descripción minuciosa, fotografías y recolección de indicios.',
+                'cadena_custodia': 'Documentar adecuadamente la cadena de custodia de todos los indicios y evidencias recolectadas.',
+                'dictamen_pericial': 'Solicitar dictámenes periciales necesarios según la naturaleza del delito (balística, dactiloscopia, ADN, etc.).',
+                'informe_investigacion': 'Elaborar informe completo de las diligencias realizadas y conclusiones de la investigación.',
+                'acuerdo_reparatorio': 'Documentar cualquier acuerdo reparatorio entre las partes, si es procedente según el tipo de delito.',
+                'orden_aprehension': 'Solicitar orden de aprehensión cuando se cumplan los requisitos legales correspondientes.'
+            };
+
+            return recommendations[elementId] || `Completar la documentación requerida para ${config.name}`;
+        }
+
+        // Generar mejora de calidad específica
+        function generateQualityImprovement(elementId) {
+            const improvements = {
+                'denuncia_querella': 'ampliar la narración de hechos con mayor detalle temporal y circunstancial',
+                'entrevista_victima': 'profundizar en las preguntas sobre daños y afectaciones específicas',
+                'entrevista_testigos': 'obtener testimonios más detallados y específicos',
+                'inspeccion_lugar': 'incluir mayor número de fotografías y descripción técnica',
+                'cadena_custodia': 'completar registros de fechas, horas y responsables de cada transferencia',
+                'dictamen_pericial': 'ampliar fundamentos técnicos y metodología empleada',
+                'informe_investigacion': 'detallar cronología de diligencias y conclusiones específicas',
+                'entrevista_policia': 'obtener declaraciones más detalladas de las observaciones policiales',
+                'acuerdo_reparatorio': 'especificar términos y condiciones del acuerdo',
+                'orden_aprehension': 'verificar cumplimiento de todos los requisitos legales'
+            };
+
+            return improvements[elementId] || 'mejorar la documentación y completar información faltante';
+        }
+
+        // Generar marco legal aplicable
+        function generateLegalFramework(analysis) {
+            return {
+                cnpp: {
+                    article131: {
+                        title: 'Artículo 131 - Contenido de la carpeta de investigación',
+                        content: 'La carpeta de investigación contendrá los registros de las diligencias realizadas durante la investigación.',
+                        compliance: analysis.overallScore >= 70 ? 'CUMPLE' : 'NO_CUMPLE'
+                    },
+                    generalRequirements: [
+                        'Legalidad en la recolección de evidencias',
+                        'Objetividad en la investigación',
+                        'Completitud de la información',
+                        'Cadena de custodia documentada'
+                    ]
+                },
+                assessment: {
+                    legalViability: analysis.judicializationPercentage >= 60,
+                    imputationReady: analysis.overallScore >= 70 && analysis.issues.filter(i => i.severity === 'CRÍTICO').length === 0,
+                    recommendedAction: getRecommendedAction(analysis)
+                }
+            };
+        }
+
+        // Obtener acción recomendada
+        function getRecommendedAction(analysis) {
+            if (analysis.judicializationPercentage >= 80) {
+                return 'PROCEDER_IMPUTACION';
+            } else if (analysis.judicializationPercentage >= 60) {
+                return 'COMPLETAR_INVESTIGACION';
+            } else if (analysis.judicializationPercentage >= 40) {
+                return 'REFORZAR_CARPETA';
+            } else {
+                return 'REHACER_INVESTIGACION';
+            }
+        }
+
+        // Generar resumen ejecutivo
+        function generateExecutiveSummary(analysis) {
+            const summary = {
+                conclusion: generateConclusion(analysis),
+                strengths: identifyStrengths(analysis),
+                weaknesses: identifyWeaknesses(analysis),
+                nextSteps: generateNextSteps(analysis),
+                timeline: generateTimeline(analysis)
+            };
+
+            return summary;
+        }
+
+        // Generar conclusión
+        function generateConclusion(analysis) {
+            const score = analysis.judicializationPercentage;
+            
+            if (score >= 80) {
+                return `La carpeta de investigación cumple con los estándares requeridos (${score}%) y es apta para proceder con la imputación. Los elementos probatorios son suficientes y de calidad adecuada.`;
+            } else if (score >= 60) {
+                return `La carpeta de investigación presenta un nivel aceptable (${score}%) pero requiere completar algunos elementos antes de proceder con la imputación.`;
+            } else if (score >= 40) {
+                return `La carpeta de investigación presenta deficiencias significativas (${score}%) que deben ser subsanadas antes de considerar la judicialización.`;
+            } else {
+                return `La carpeta de investigación es insuficiente (${score}%) para sustentar una imputación. Se requiere rehacer la investigación con elementos probatorios adicionales.`;
+            }
+        }
+
+        // Identificar fortalezas
+        function identifyStrengths(analysis) {
+            const strengths = [];
+            
+            Object.entries(analysis.elementsFound).forEach(([elementId, elementAnalysis]) => {
+                if (elementAnalysis.found && elementAnalysis.quality === 'ALTO') {
+                    strengths.push(`${requiredElements[elementId].name} presenta excelente calidad`);
+                }
+            });
+
+            if (analysis.overallScore >= 70) {
+                strengths.push('Puntuación general satisfactoria');
+            }
+
+            if (analysis.issues.length === 0) {
+                strengths.push('No se identificaron problemas críticos');
+            }
+
+            return strengths;
+        }
+
+        // Identificar debilidades
+        function identifyWeaknesses(analysis) {
+            const weaknesses = [];
+            
+            analysis.missingElements.forEach(missing => {
+                if (missing.impact === 'ALTO') {
+                    weaknesses.push(`Falta elemento crítico: ${missing.element}`);
+                }
+            });
+
+            Object.entries(analysis.elementsFound).forEach(([elementId, elementAnalysis]) => {
+                if (elementAnalysis.found && elementAnalysis.quality === 'BAJO') {
+                    weaknesses.push(`Calidad baja en: ${requiredElements[elementId].name}`);
+                }
+            });
+
+            if (analysis.overallScore < 50) {
+                weaknesses.push('Puntuación general por debajo del nivel mínimo requerido');
+            }
+
+            return weaknesses;
+        }
+
+        // Generar próximos pasos
+        function generateNextSteps(analysis) {
+            const steps = [];
+
+            if (analysis.missingElements.length > 0) {
+                steps.push('Integrar los elementos faltantes identificados.');
+            }
+
+            if (analysis.recommendations.length > 0) {
+                steps.push('Aplicar las recomendaciones específicas para cada documento.');
+            }
+
+            if (analysis.criticalIssues.length > 0) {
+                steps.push('Corregir los problemas críticos antes de continuar.');
+            }
+
+            return steps;
+        }
+
+        // Generar línea de tiempo ordenada
+        function generateTimeline(analysis) {
+            return analysis.timeline.sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+
+function exportExecutiveSummaryToPDF() {
+    const summaryElement = document.getElementById('summary');
+    if (!summaryElement) {
+        alert('No se encontró el Resumen Ejecutivo.');
+        return;
+    }
+
+    const originalDisplay = summaryElement.style.display;
+    summaryElement.style.display = 'block';
+
+    const opt = {
+        margin:       0.5,
+        filename:     'Resumen_Ejecutivo_Carpeta_CNPP.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(summaryElement).save().finally(() => {
+        summaryElement.style.display = originalDisplay;
+    });
+}
+function generateReports() {
+    const score = analysisResults.overallScore || 0;
+    const level = analysisResults.judicializationLevel || 'SIN DATOS';
+    const desc = {
+        'EXCELENTE': 'La carpeta está lista para judicialización.',
+        'BUENO': 'Cumple con la mayoría de requisitos, se sugiere revisión final.',
+        'REGULAR': 'Necesita mejorar algunos elementos clave.',
+        'DEFICIENTE': 'Faltan varios elementos importantes.',
+        'INSUFICIENTE': 'No cumple con los requisitos mínimos.'
+    };
+
+	console.log('DOCUMENTOS PROCESADOS:');
+	console.log(processedDocuments);
+	console.log('ANÁLISIS RESULTADO:', analysisResults);
+
+
+    // Mostrar puntaje y nivel
+    document.getElementById('scoreText').innerText = `${score}%`;
+    document.getElementById('scoreDescription').innerText = desc[level] || 'Análisis en curso...';
+
+    const scoreCircle = document.getElementById('scoreCircle');
+    scoreCircle.classList.remove('score-low', 'score-medium', 'score-high');
+    if (score >= 80) scoreCircle.classList.add('score-high');
+    else if (score >= 50) scoreCircle.classList.add('score-medium');
+    else scoreCircle.classList.add('score-low');
+
+    // Análisis General
+    const generalDiv = document.getElementById('generalAnalysis');
+    generalDiv.innerHTML = `
+        <p><strong>Total de Documentos:</strong> ${analysisResults.totalDocuments}</p>
+        <p><strong>Elementos Encontrados:</strong> ${Object.values(analysisResults.elementsFound).filter(e => e.found).length}</p>
+        <p><strong>Elementos Faltantes:</strong> ${analysisResults.missingElements.length}</p>
+        <p><strong>Recomendaciones:</strong> ${analysisResults.recommendations.length}</p>
+    `;
+
+    // Lista de Verificación
+    const checklist = document.getElementById('elementsChecklist');
+    checklist.innerHTML = '';
+    Object.entries(analysisResults.elementsFound).forEach(([id, result]) => {
+        const config = cnppAnalysisConfig[id];
+        const statusClass = result.found
+            ? (result.qualityScore >= 0.75 ? 'present' : 'partial')
+            : 'missing';
+        const icon = result.found
+            ? (result.qualityScore >= 0.75 ? '✅' : '⚠️')
+            : '❌';
+
+        checklist.innerHTML += `
+    <div class="element-card ${statusClass}" title="${statusClass === 'missing' ? 'Elemento no encontrado en los documentos cargados' : statusClass === 'partial' ? 'Elemento presente con deficiencias' : 'Elemento completo'}">
+        <div class="element-title">
+            <span class="status-icon">${icon}</span>
+            ${config.name}
+        </div>
+        <div class="element-description">${config.description}</div>
+    </div>
+`;
+
+		checklist.innerHTML += `
+    <p style="margin-top: 20px; font-size: 0.9em; color: #6c757d;">
+        <strong>❌</strong> No detectado &nbsp;&nbsp;
+        <strong>⚠️</strong> Incompleto o deficiente &nbsp;&nbsp;
+        <strong>✅</strong> Correctamente integrado
+    </p>
+`;
+
+    // Informe Detallado
+    const detailed = document.getElementById('detailedReport');
+    detailed.innerHTML = analysisResults.recommendations.map(rec => `
+        <div class="report-section">
+            <h3>${rec.title}</h3>
+            <p><strong>Tipo:</strong> ${rec.type} | <strong>Prioridad:</strong> ${rec.priority}</p>
+            <p>${rec.description}</p>
+            <p><em>${rec.legalBasis}</em></p>
+        </div>
+    `).join('');
+
+    // Marco Legal
+    const legal = document.getElementById('legalFramework');
+    const legalInfo = generateLegalFramework(analysisResults);
+    legal.innerHTML = `
+        <div class="report-section">
+            <h3>${legalInfo.cnpp.article131.title}</h3>
+            <p>${legalInfo.cnpp.article131.content}</p>
+            <p><strong>Estado:</strong> ${legalInfo.cnpp.article131.compliance}</p>
+        </div>
+        <div class="report-section">
+            <h3>Requisitos Generales</h3>
+            <ul>${legalInfo.cnpp.generalRequirements.map(r => `<li>${r}</li>`).join('')}</ul>
+        </div>
+    `;
+}
+
+function printExecutiveSummary() {
+    const summary = document.getElementById('summary');
+    if (!summary) return alert('Resumen Ejecutivo no disponible.');
+
+    const originalContent = document.body.innerHTML;
+    const summaryContent = summary.outerHTML;
+
+    document.body.innerHTML = `
+        <html>
+            <head>
+                <title>Resumen Ejecutivo</title>
+                <style>
+                    body {
+                        font-family: 'Segoe UI', sans-serif;
+                        margin: 40px;
+                        background: white;
+                    }
+                    h3 {
+                        margin-top: 30px;
+                        color: #2c3e50;
+                        border-bottom: 1px solid #ccc;
+                        padding-bottom: 10px;
+                    }
+                </style>
+            </head>
+            <body>${summaryContent}</body>
+        </html>
+    `;
+
+    window.print();
+    document.body.innerHTML = originalContent;
+    window.location.reload(); // para restaurar evento JS y estado
+}
+
+document.getElementById("fileInput").addEventListener("change", function(e) {
+    const files = Array.from(e.target.files);
+    console.log("Archivos seleccionados:", files);
+    handleFiles(files);
+});
+
+function handleFiles(files) {
+    const validTypes = ['.pdf', '.doc', '.docx', '.txt'];
+    uploadedFiles = [];
+
+    files.forEach(file => {
+        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+        if (validTypes.includes(fileExtension)) {
+            uploadedFiles.push({
+                file,
+                name: file.name,
+                size: file.size,
+                type: fileExtension,
+                id: Date.now() + Math.random()
+            });
+        } else {
+            alert(`Archivo ${file.name} no es compatible.`);
+        }
+    });
+
+    updateFileList();
+    updateAnalyzeButton();
+    const debugList = document.getElementById('debugFileList');
+    if (debugList) {
+        debugList.innerHTML = uploadedFiles.map(f =>
+            `<li>${f.name} - ${f.type.toUpperCase()} - ${formatFileSize(f.size)}</li>`
+        ).join('');
+    }
+}
+    </script>
+</body>
+</html>

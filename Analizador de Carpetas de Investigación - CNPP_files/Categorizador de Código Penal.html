@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categorizador de Código Penal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        .config-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .config-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            min-width: 150px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .input-group input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100px;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .article-item {
+            background: white;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .article-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .article-header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .article-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .article-category {
+            background: #e74c3c;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .article-content {
+            padding: 20px;
+        }
+
+        .article-text {
+            line-height: 1.6;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .category-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            padding: 8px 15px;
+            border: 2px solid #667eea;
+            background: transparent;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📖 Categorizador de Legislacion</h1>
+            <p>Extrae y categoriza artículos de cualquier ley automáticamente</p>
+        </div>
+
+        <div class="main-content">
+            <div class="config-section">
+                <h3>⚙️ Configuración</h3>
+                <div class="input-group">
+                    <label>Artículo inicial:</label>
+                    <input type="number" id="articuloInicial" value="1" min="1">
+                </div>
+                <div class="input-group">
+                    <label>Artículo final:</label>
+                    <input type="number" id="articuloFinal" value="10000" min="1">
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h2>📝 Texto de la ley a Categorizar</h2>
+                <textarea id="codigoPenal" placeholder="Pega aquí el texto completo de tu código penal...
+
+Ejemplo:
+Artículo 21.- El que se apodera ilegítimamente de cosa mueble ajena...
+Artículo 22.- El que cause a otro daño en el cuerpo o en la salud..."></textarea>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="procesarCodigo()">🔍 Analizar Ley</button>
+                <button class="btn btn-secondary" onclick="limpiarResultados()">🗑️ Limpiar</button>
+            </div>
+
+            <div class="results-section" id="resultados" style="display: none;">
+                <div class="stats" id="estadisticas"></div>
+                
+                <h2>🏷️ Filtrar por Categoría</h2>
+                <div class="category-filter" id="filtrosCategorias"></div>
+                
+                <h2>📋 Artículos Encontrados</h2>
+                <div id="listaArticulos"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Definición de categorías y palabras clave
+        const categorias = {
+            'FRAUDE': ['fraude', 'estafa', 'engaño', 'falsificación', 'simulación', 'falso', 'documento', 'firma'],
+            'ROBO': ['robo', 'hurto', 'apodera', 'sustrae', 'despoja', 'asalta', 'arrebata'],
+            'EXTORSIÓN': ['extorsión', 'chantaje', 'amenaza', 'coacción', 'intimidación'],
+            'PATRIMONIALES': ['patrimonio', 'daño', 'destruye', 'deteriora', 'usurpación', 'propiedad'],
+            'LESIONES': ['lesión', 'lesiones', 'golpe', 'herida', 'daño corporal', 'maltrato', 'agresión'],
+            'HOMICIDIO': ['homicidio', 'muerte', 'mata', 'asesina', 'vida', 'fallecimiento', 'deceso'],
+            'HECHOS DE SANGRE': ['sangre', 'violento', 'brutal', 'sevicia', 'ensañamiento'],
+            'SEXUALES': ['sexual', 'violación', 'abuso', 'acoso', 'estupro', 'corrupción'],
+            'DROGAS': ['droga', 'estupefaciente', 'narcótico', 'sustancia', 'tráfico', 'posesión'],
+            'CORRUPCIÓN': ['cohecho', 'corrupción', 'soborno', 'malversación', 'peculado', 'autoridad'],
+            'CONTRA LA LIBERTAD': ['secuestro', 'privación', 'libertad', 'retención', 'rapto'],
+            'OTROS': []
+        };
+
+        let articulosEncontrados = [];
+        let categoriaActiva = 'TODAS';
+
+        function determinarCategoria(texto) {
+            const textoLower = texto.toLowerCase();
+            
+            for (const [categoria, palabras] of Object.entries(categorias)) {
+                if (categoria === 'OTROS') continue;
+                
+                for (const palabra of palabras) {
+                    if (textoLower.includes(palabra)) {
+                        return categoria;
+                    }
+                }
+            }
+            return 'OTROS';
+        }
+
+        function extraerArticulos(texto) {
+            const articuloInicial = parseInt(document.getElementById('articuloInicial').value);
+            const articuloFinal = parseInt(document.getElementById('articuloFinal').value);
+            
+            // Expresión regular para encontrar artículos
+            const regex = /artículo\s+(\d+)\.?\s*-?\s*(.*?)(?=artículo\s+\d+|$)/gis;
+            const articulos = [];
+            let match;
+
+            while ((match = regex.exec(texto)) !== null) {
+                const numero = parseInt(match[1]);
+                const contenido = match[2].trim();
+                
+                if (numero >= articuloInicial && numero <= articuloFinal && contenido.length > 10) {
+                    const categoria = determinarCategoria(contenido);
+                    
+                    articulos.push({
+                        numero: numero,
+                        texto: contenido,
+                        categoria: categoria
+                    });
+                }
+            }
+
+            return articulos.sort((a, b) => a.numero - b.numero);
+        }
+
+        function mostrarEstadisticas(articulos) {
+            const stats = {};
+            articulos.forEach(art => {
+                stats[art.categoria] = (stats[art.categoria] || 0) + 1;
+            });
+
+            const statsHtml = `
+                <div class="stat-card">
+                    <h3>${articulos.length}</h3>
+                    <p>Total Artículos</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${Object.keys(stats).length}</h3>
+                    <p>Categorías</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${Math.max(...Object.values(stats))}</h3>
+                    <p>Categoría Mayor</p>
+                </div>
+            `;
+
+            document.getElementById('estadisticas').innerHTML = statsHtml;
+        }
+
+        function crearFiltrosCategorias(articulos) {
+            const categorias = [...new Set(articulos.map(art => art.categoria))];
+            
+            let filtrosHtml = '<button class="filter-btn active" onclick="filtrarCategoria(\'TODAS\')">TODAS</button>';
+            
+            categorias.forEach(cat => {
+                filtrosHtml += `<button class="filter-btn" onclick="filtrarCategoria('${cat}')">${cat}</button>`;
+            });
+
+            document.getElementById('filtrosCategorias').innerHTML = filtrosHtml;
+        }
+
+        function filtrarCategoria(categoria) {
+            categoriaActiva = categoria;
+            
+            // Actualizar botones activos
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            mostrarArticulos();
+        }
+
+        function mostrarArticulos() {
+            const articulosFiltrados = categoriaActiva === 'TODAS' 
+                ? articulosEncontrados 
+                : articulosEncontrados.filter(art => art.categoria === categoriaActiva);
+
+            const colores = {
+                'FRAUDE': '#e74c3c',
+                'ROBO': '#f39c12',
+                'EXTORSIÓN': '#8e44ad',
+                'PATRIMONIALES': '#3498db',
+                'LESIONES': '#e67e22',
+                'HOMICIDIO': '#c0392b',
+                'HECHOS DE SANGRE': '#922b21',
+                'SEXUALES': '#ad1457',
+                'DROGAS': '#7b1fa2',
+                'CORRUPCIÓN': '#d32f2f',
+                'CONTRA LA LIBERTAD': '#5d4037',
+                'OTROS': '#607d8b'
+            };
+
+            let articulosHtml = '';
+            
+            articulosFiltrados.forEach(articulo => {
+                const color = colores[articulo.categoria] || '#607d8b';
+                
+                articulosHtml += `
+                    <div class="article-item">
+                        <div class="article-header">
+                            <div class="article-number">ARTÍCULO ${articulo.numero}</div>
+                            <div class="article-category" style="background-color: ${color}">
+                                ${articulo.categoria}
+                            </div>
+                        </div>
+                        <div class="article-content">
+                            <div class="article-text">${articulo.texto}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (articulosHtml === '') {
+                articulosHtml = '<div class="no-results">No se encontraron artículos para esta categoría.</div>';
+            }
+
+            document.getElementById('listaArticulos').innerHTML = articulosHtml;
+        }
+
+        function procesarCodigo() {
+            const texto = document.getElementById('codigoPenal').value.trim();
+            
+            if (!texto) {
+                alert('Por favor, ingresa el texto del código penal');
+                return;
+            }
+
+            // Mostrar loading
+            document.getElementById('resultados').style.display = 'block';
+            document.getElementById('listaArticulos').innerHTML = '<div class="loading">🔍 Procesando código penal...</div>';
+
+            setTimeout(() => {
+                articulosEncontrados = extraerArticulos(texto);
+                
+                if (articulosEncontrados.length === 0) {
+                    document.getElementById('listaArticulos').innerHTML = 
+                        '<div class="no-results">No se encontraron artículos en el rango especificado. Verifica el formato del texto.</div>';
+                    return;
+                }
+
+                mostrarEstadisticas(articulosEncontrados);
+                crearFiltrosCategorias(articulosEncontrados);
+                mostrarArticulos();
+                
+                // Scroll suave a resultados
+                document.getElementById('resultados').scrollIntoView({ 
+                    behavior: 'smooth' 
+                });
+            }, 500);
+        }
+
+        function limpiarResultados() {
+            document.getElementById('codigoPenal').value = '';
+            document.getElementById('resultados').style.display = 'none';
+            articulosEncontrados = [];
+            categoriaActiva = 'TODAS';
+        }
+
+        // Funcionalidad adicional: permitir arrastrar y soltar archivos
+        const textarea = document.getElementById('codigoPenal');
+        
+        textarea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            textarea.style.borderColor = '#667eea';
+        });
+
+        textarea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            textarea.style.borderColor = '#e1e8ed';
+        });
+
+        textarea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            textarea.style.borderColor = '#e1e8ed';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type === 'text/plain') {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        textarea.value = e.target.result;
+                    };
+                    reader.readAsText(file);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

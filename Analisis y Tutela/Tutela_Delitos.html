@@ -1,0 +1,2787 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador Código Penal de Quintana Roo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-left: 5px solid #3498db;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        input[type="number"], select {
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 200px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .analyze-btn:active {
+            transform: translateY(0);
+        }
+
+        .results-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 20px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .section {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .section strong {
+            color: #2c3e50;
+        }
+
+        .divider {
+            height: 1px;
+            background: #eee;
+            margin: 10px 0;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #e53e3e;
+            margin-top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            margin-right: 8px;
+        }
+
+        .export-section {
+            background: #e8f5e8;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            input[type="number"], select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Analizador Código Penal</h1>
+            <p>Quintana Roo - Artículos 1 al 270</p>
+        </header>
+
+        <main class="main-content">
+            <section class="input-section">
+                <div class="input-group">
+                    <label for="articleNumber">Número de Artículo:</label>
+                    <input type="number" id="articleNumber" min="1" max="270" placeholder="Ej: 86">
+                    
+                    <label for="selector">O seleccionar:</label>
+                    <select id="selector">
+                        <option value="">Seleccione un artículo...</option>
+                    </select>
+                    
+                    <button class="analyze-btn" onclick="analyzeArticle()">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
+                        </svg>
+                        Analizar
+                    </button>
+                </div>
+            </section>
+
+            <section id="results" class="results-section">
+                <div id="loading" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Analizando artículo...</p>
+                </div>
+
+                <div id="resultado">
+                    <!-- Los resultados se insertarán aquí -->
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;">
+                    <!-- Los errores se mostrarán aquí -->
+                </div>
+            </section>
+
+            <section class="export-section">
+                <h3>Exportar Datos</h3>
+                <p>Descarga la base de datos completa en formato JSON</p>
+                <button class="export-btn" onclick="exportarJSON()">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                    </svg>
+                    Exportar JSON
+                </button>
+                <button class="export-btn" onclick="exportarCSV()">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                    </svg>
+                    Exportar CSV
+                </button>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const delitos = [
+            {
+                "articulo": 86,
+                "titulo": "Homicidio",
+                "penaMin": 10,
+                "penaMax": 25,
+                "tipoDelito": "Instantáneo",
+                "accion": "Doloso",
+                "punibilidad": "Punible de oficio",
+                "autoriaParticipacion": "Autoría directa y participación según art. 16",
+                "contraMenor": false,
+                "soloMulta": false,
+                "accesorias": [
+                    "pérdida de patria potestad",
+                    "pérdida de derechos sucesorios"
+                ],
+                "personasJuridicas": true,
+                "prescripcionAccionPenal": "17.5 años (promedio aritmético)",
+                "prescripcionSanciones": "17.5 años (duración de la pena)"
+            },
+            {
+			"articulo": 86,
+			"titulo": "Homicidio",
+			"penaMin": 10,
+			"penaMax": 25,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "pérdida de patria potestad",
+			  "pérdida de derechos sucesorios"
+			],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 87,
+			"titulo": "Homicidio en riña",
+			"penaMin": 5,
+			"penaMax": 15,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 88,
+			"titulo": "Parricidio",
+			"penaMin": 20,
+			"penaMax": 40,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 88.1,
+			"titulo": "Homicidio culposo por conducción",
+			"penaMin": 4,
+			"penaMax": 12,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación para conducir"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 89,
+			"titulo": "Homicidio calificado",
+			"penaMin": 25,
+			"penaMax": 50,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 89.1,
+			"titulo": "Feminicidio",
+			"penaMin": 30,
+			"penaMax": 50,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 99,
+			"titulo": "Lesiones fisicas o mentales",
+			"penaMin": 3,
+			"penaMax": 8,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 100,
+			"titulo": "Lesiones calificadas",
+			"penaMin": 5,
+			"penaMax": 12,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 101,
+			"titulo": "Lesiones en riña",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 102,
+			"titulo": "Lesiones Ascendientes, deacendientes",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": true,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 103,
+			"titulo": "Lesones calificadas",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 104,
+			"titulo": "Lesiones en relacion a art. 99",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 105,
+			"titulo": "Riña es la contienda de obra o la agresión física",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 106,
+			"titulo": "El homicidio y las lesiones son calificados; Fraccs I -VIII.",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 107,
+			"titulo": "Homicidio o lesiones se cometen culposamente con motivo del tránsito de transporte público",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 108,
+			"titulo": "Delito del artículo 108",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 109,
+			"titulo": "Delito del artículo 109",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 110,
+			"titulo": "Delito del artículo 110",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 111,
+			"titulo": "Delito del artículo 111",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 112,
+			"titulo": "Delito del artículo 112",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 113,
+			"titulo": "Delito del artículo 113",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 114,
+			"titulo": "Delito del artículo 114",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 115,
+			"titulo": "Delito del artículo 115",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 116,
+			"titulo": "Delito del artículo 116",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 117,
+			"titulo": "Delito del artículo 117",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 118,
+			"titulo": "Delito del artículo 118",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 119,
+			"titulo": "Delito del artículo 119",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": true,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 120,
+			"titulo": "Delito del artículo 120",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 121,
+			"titulo": "Delito del artículo 121",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 122,
+			"titulo": "Delito del artículo 122",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 123,
+			"titulo": "Delito del artículo 123",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 124,
+			"titulo": "Delito del artículo 124",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 125,
+			"titulo": "Delito del artículo 125",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 126,
+			"titulo": "Delito del artículo 126",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 127,
+			"titulo": "Delito del artículo 127",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": true,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 128,
+			"titulo": "Delito del artículo 128",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 129,
+			"titulo": "Delito del artículo 129",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": true,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 130,
+			"titulo": "Delito del artículo 130",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": true,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 131,
+			"titulo": "Delito del artículo 131",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": true,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 132,
+			"titulo": "Delito del artículo 132",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 133,
+			"titulo": "Delito del artículo 133",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 134,
+			"titulo": "Delito del artículo 134",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 135,
+			"titulo": "Delito del artículo 135",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 136,
+			"titulo": "Delito del artículo 136",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": true,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 137,
+			"titulo": "Delito del artículo 137",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 138,
+			"titulo": "Delito del artículo 138",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 139,
+			"titulo": "Delito del artículo 139",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 140,
+			"titulo": "Delito del artículo 140",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 141,
+			"titulo": "Delito del artículo 141",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 142,
+			"titulo": "Delito del artículo 142",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 143,
+			"titulo": "Delito del artículo 143",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 144,
+			"titulo": "Delito del artículo 144",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 145,
+			"titulo": "Delito del artículo 145",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 146,
+			"titulo": "Delito del artículo 146",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 147,
+			"titulo": "Delito del artículo 147",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 148,
+			"titulo": "Delito del artículo 148",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 149,
+			"titulo": "Delito del artículo 149",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 150,
+			"titulo": "Delito del artículo 150",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 151,
+			"titulo": "Delito del artículo 151",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 152,
+			"titulo": "Delito del artículo 152",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 153,
+			"titulo": "Delito del artículo 153",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": true,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 154,
+			"titulo": "Delito del artículo 154",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 155,
+			"titulo": "Delito del artículo 155",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": true,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 156,
+			"titulo": "Delito del artículo 156",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 157,
+			"titulo": "Delito del artículo 157",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 158,
+			"titulo": "Delito del artículo 158",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 159,
+			"titulo": "Delito del artículo 159",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 160,
+			"titulo": "Delito del artículo 160",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": true,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 161,
+			"titulo": "Delito del artículo 161",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 162,
+			"titulo": "Delito del artículo 162",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 163,
+			"titulo": "Delito del artículo 163",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 164,
+			"titulo": "Delito del artículo 164",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 165,
+			"titulo": "Delito del artículo 165",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 166,
+			"titulo": "Delito del artículo 166",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 167,
+			"titulo": "Delito del artículo 167",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 168,
+			"titulo": "Delito del artículo 168",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 169,
+			"titulo": "Delito del artículo 169",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 170,
+			"titulo": "Delito del artículo 170",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": true,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 171,
+			"titulo": "Delito del artículo 171",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 172,
+			"titulo": "Delito del artículo 172",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 173,
+			"titulo": "Delito del artículo 173",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 174,
+			"titulo": "Delito del artículo 174",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 175,
+			"titulo": "Delito del artículo 175",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 176,
+			"titulo": "Delito del artículo 176",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 177,
+			"titulo": "Delito del artículo 177",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 178,
+			"titulo": "Delito del artículo 178",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 179,
+			"titulo": "Delito del artículo 179",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 180,
+			"titulo": "Delito del artículo 180",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 181,
+			"titulo": "Delito del artículo 181",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 182,
+			"titulo": "Delito del artículo 182",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 183,
+			"titulo": "Delito del artículo 183",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 184,
+			"titulo": "Delito del artículo 184",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 185,
+			"titulo": "Delito del artículo 185",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 186,
+			"titulo": "Delito del artículo 186",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 187,
+			"titulo": "Delito del artículo 187",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": true,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 188,
+			"titulo": "Delito del artículo 188",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 189,
+			"titulo": "Delito del artículo 189",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 190,
+			"titulo": "Delito del artículo 190",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 191,
+			"titulo": "Delito del artículo 191",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 192,
+			"titulo": "Delito del artículo 192",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 193,
+			"titulo": "Delito del artículo 193",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 194,
+			"titulo": "Delito del artículo 194",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 195,
+			"titulo": "Delito del artículo 195",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 196,
+			"titulo": "Delito del artículo 196",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 197,
+			"titulo": "Delito del artículo 197",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 198,
+			"titulo": "Delito del artículo 198",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 199,
+			"titulo": "Delito del artículo 199",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 200,
+			"titulo": "Delito del artículo 200",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 201,
+			"titulo": "Delito del artículo 201",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 202,
+			"titulo": "Delito del artículo 202",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 203,
+			"titulo": "Delito del artículo 203",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 204,
+			"titulo": "Delito del artículo 204",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": true,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 205,
+			"titulo": "Delito del artículo 205",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 206,
+			"titulo": "Delito del artículo 206",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 207,
+			"titulo": "Delito del artículo 207",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 208,
+			"titulo": "Delito del artículo 208",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 209,
+			"titulo": "Delito del artículo 209",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 210,
+			"titulo": "Delito del artículo 210",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 211,
+			"titulo": "Delito del artículo 211",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 212,
+			"titulo": "Delito del artículo 212",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 213,
+			"titulo": "Delito del artículo 213",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 214,
+			"titulo": "Delito del artículo 214",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 215,
+			"titulo": "Delito del artículo 215",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 216,
+			"titulo": "Delito del artículo 216",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 217,
+			"titulo": "Delito del artículo 217",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 218,
+			"titulo": "Delito del artículo 218",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 219,
+			"titulo": "Delito del artículo 219",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 220,
+			"titulo": "Delito del artículo 220",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 221,
+			"titulo": "Delito del artículo 221",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": true,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 222,
+			"titulo": "Delito del artículo 222",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 223,
+			"titulo": "Delito del artículo 223",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 224,
+			"titulo": "Delito del artículo 224",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 225,
+			"titulo": "Delito del artículo 225",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 226,
+			"titulo": "Delito del artículo 226",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 227,
+			"titulo": "Delito del artículo 227",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 228,
+			"titulo": "Delito del artículo 228",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 229,
+			"titulo": "Delito del artículo 229",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 230,
+			"titulo": "Delito del artículo 230",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 231,
+			"titulo": "Delito del artículo 231",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 232,
+			"titulo": "Delito del artículo 232",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 233,
+			"titulo": "Delito del artículo 233",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 234,
+			"titulo": "Delito del artículo 234",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 235,
+			"titulo": "Delito del artículo 235",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 236,
+			"titulo": "Delito del artículo 236",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 237,
+			"titulo": "Delito del artículo 237",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 238,
+			"titulo": "Delito del artículo 238",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": true,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 239,
+			"titulo": "Delito del artículo 239",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 240,
+			"titulo": "Delito del artículo 240",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 241,
+			"titulo": "Delito del artículo 241",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 242,
+			"titulo": "Delito del artículo 242",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 243,
+			"titulo": "Delito del artículo 243",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 244,
+			"titulo": "Delito del artículo 244",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 245,
+			"titulo": "Delito del artículo 245",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 246,
+			"titulo": "Delito del artículo 246",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 247,
+			"titulo": "Delito del artículo 247",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 248,
+			"titulo": "Delito del artículo 248",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 249,
+			"titulo": "Delito del artículo 249",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 250,
+			"titulo": "Delito del artículo 250",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 251,
+			"titulo": "Delito del artículo 251",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 252,
+			"titulo": "Delito del artículo 252",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 253,
+			"titulo": "Delito del artículo 253",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 254,
+			"titulo": "Delito del artículo 254",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 255,
+			"titulo": "Delito del artículo 255",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": true,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 256,
+			"titulo": "Delito del artículo 256",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 257,
+			"titulo": "Delito del artículo 257",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 258,
+			"titulo": "Delito del artículo 258",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 259,
+			"titulo": "Delito del artículo 259",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Continuado",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 260,
+			"titulo": "Delito del artículo 260",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 261,
+			"titulo": "Delito del artículo 261",
+			"penaMin": 3,
+			"penaMax": 7,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 262,
+			"titulo": "Delito del artículo 262",
+			"penaMin": 4,
+			"penaMax": 8,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 263,
+			"titulo": "Delito del artículo 263",
+			"penaMin": 5,
+			"penaMax": 9,
+			"tipoDelito": "Permanente",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 264,
+			"titulo": "Delito del artículo 264",
+			"penaMin": 6,
+			"penaMax": 10,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 265,
+			"titulo": "Delito del artículo 265",
+			"penaMin": 2,
+			"penaMax": 11,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 266,
+			"titulo": "Delito del artículo 266",
+			"penaMin": 3,
+			"penaMax": 12,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": true
+		  },
+		  {
+			"articulo": 267,
+			"titulo": "Delito del artículo 267",
+			"penaMin": 4,
+			"penaMax": 13,
+			"tipoDelito": "Instantáneo",
+			"accion": "Culposo",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 268,
+			"titulo": "Delito del artículo 268",
+			"penaMin": 5,
+			"penaMax": 14,
+			"tipoDelito": "Continuado",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 269,
+			"titulo": "Delito del artículo 269",
+			"penaMin": 6,
+			"penaMax": 15,
+			"tipoDelito": "Permanente",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [],
+			"personasJuridicas": false
+		  },
+		  {
+			"articulo": 270,
+			"titulo": "Delito del artículo 270",
+			"penaMin": 2,
+			"penaMax": 6,
+			"tipoDelito": "Instantáneo",
+			"accion": "Doloso",
+			"contraMenor": false,
+			"soloMulta": false,
+			"accesorias": [
+			  "inhabilitación"
+			],
+			"personasJuridicas": false
+		  }
+        ];
+
+        // Inicializar selector
+        function inicializarSelector() {
+            const selector = document.getElementById('selector');
+            delitos.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.articulo;
+                opt.textContent = `Art. ${d.articulo} - ${d.titulo}`;
+                selector.appendChild(opt);
+            });
+        }
+
+        // Análisis completo del artículo
+        function analizar(articulo) {
+            const d = delitos.find(x => x.articulo === articulo);
+            if (!d) {
+                return null;
+            }
+
+            const imprescriptibles = [127, 129, 130, 131];
+            
+            let resultado = {
+                articulo: d.articulo,
+                titulo: d.titulo,
+                penaMin: d.penaMin,
+                penaMax: d.penaMax,
+                tipoCategorizado: d.tipoDelito,
+                accionTipica: d.accion,
+                punibilidad: d.punibilidad,
+                autoriaParticipacion: d.autoriaParticipacion,
+                aplicaPJ: d.personasJuridicas ? "Sí aplica a Personas Jurídicas (Art. 18 Bis)" : "No aplica a Personas Jurídicas",
+                contraMenor: d.contraMenor,
+                soloMulta: d.soloMulta,
+                accesorias: d.accesorias,
+                prescripcionAccionPenal: {},
+                prescripcionSancion: {},
+                explicacion: []
+            };
+
+            // Cálculo de prescripción de acción penal
+            if (d.contraMenor && imprescriptibles.includes(d.articulo)) {
+                resultado.prescripcionAccionPenal = { 
+                    tipo: "IMPRESCRIPTIBLE", 
+                    fundamento: `Artículo ${d.articulo} se considera imprescriptible (Art. 78-Bis).` 
+                };
+                resultado.explicacion.push("Delito contra menor → imprescriptible según Art. 78-Bis.");
+            } else if (d.soloMulta) {
+                resultado.prescripcionAccionPenal = { 
+                    tipo: "PRESCRIPTIBLE", 
+                    plazo: 1, 
+                    unidad: "años", 
+                    fundamento: "Solo multa → 1 año (Art. 78)." 
+                };
+                resultado.explicacion.push("Solo multa → prescripción de la acción penal = 1 año.");
+            } else {
+                const media = (d.penaMin + d.penaMax) / 2;
+                const plazoMinimo = Math.max(3, media); // Mínimo 3 años según Art. 78
+                resultado.prescripcionAccionPenal = { 
+                    tipo: "PRESCRIPTIBLE", 
+                    plazo: plazoMinimo, 
+                    unidad: "años", 
+                    fundamento: `Pena media: ${media} años → plazo = ${plazoMinimo} años (Art. 78, mínimo 3 años).` 
+                };
+                resultado.explicacion.push(`Pena media calculada: ${media} años → plazo legal: ${plazoMinimo} años`);
+            }
+
+            // Cálculo de prescripción de sanciones
+            if (d.soloMulta) {
+                resultado.prescripcionSancion = { 
+                    tipo: "PRESCRIPTIBLE", 
+                    plazo: 2, 
+                    unidad: "años", 
+                    fundamento: "Multa → 2 años (Art. 84)." 
+                };
+                resultado.explicacion.push("Sanción con multa → prescripción: 2 años.");
+            } else {
+                const media = (d.penaMin + d.penaMax) / 2;
+                const plazo = Math.max(3, Math.min(media, 15)); // Entre 3 y 15 años según Art. 84
+                resultado.prescripcionSancion = { 
+                    tipo: "PRESCRIPTIBLE", 
+                    plazo: plazo, 
+                    unidad: "años", 
+                    fundamento: `Duración de la pena → ${plazo} años (Art. 84, límites: 3-15 años).` 
+                };
+                resultado.explicacion.push(`Prescripción de sanción basada en pena media: ${media} años, ajustada a límites legales: ${plazo} años.`);
+            }
+
+            return resultado;
+        }
+
+        // Función principal de análisis
+        function analyzeArticle() {
+            // Obtener el número de artículo
+            let articulo = parseInt(document.getElementById('articleNumber').value);
+            const selector = document.getElementById('selector');
+            
+            if (!articulo && selector.value) {
+                articulo = parseInt(selector.value);
+            }
+
+            if (!articulo || articulo < 1 || articulo > 270) {
+                mostrarError("Por favor, ingrese un número de artículo válido (1-270)");
+                return;
+            }
+
+            // Mostrar loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('resultado').innerHTML = '';
+
+            // Simular tiempo de procesamiento
+            setTimeout(() => {
+                const resultado = analizar(articulo);
+                
+                if (!resultado) {
+                    mostrarError(`No se encontró información para el artículo ${articulo}. Los artículos disponibles son: ${delitos.map(d => d.articulo).join(', ')}`);
+                    return;
+                }
+
+                mostrarResultado(resultado);
+                document.getElementById('loading').style.display = 'none';
+            }, 1000);
+        }
+
+        // Mostrar resultado del análisis
+        function mostrarResultado(resultado) {
+            const html = `
+                <div class='card'>
+                    <div class='card-header'>
+                        Análisis del Artículo ${resultado.articulo} - ${resultado.titulo}
+                    </div>
+                    <div class='card-body'>
+                        <div class='section'>
+                            <strong>Penas:</strong> ${resultado.penaMin} a ${resultado.penaMax} años de prisión
+                        </div>
+                        
+                        <div class='section'>
+                            <strong>Tipo de delito:</strong> ${resultado.tipoCategorizado}
+                        </div>
+                        
+                        <div class='section'>
+                            <strong>Acción típica:</strong> ${resultado.accionTipica}
+                        </div>
+                        
+                        <div class='section'>
+                            <strong>Punibilidad:</strong> ${resultado.punibilidad}
+                        </div>
+                        
+                        <div class='section'>
+                            <strong>Autoría y Participación:</strong> ${resultado.autoriaParticipacion}
+                        </div>
+                        
+                        <div class='section'>
+                            <strong>Contra menor:</strong> ${resultado.contraMenor ? 'Sí' : 'No'}
+                        </div>
+                        
+                        <div class='section'>
+                            <strong>Solo multa:</strong> ${resultado.soloMulta ? 'Sí' : 'No'}
+                        </div>
+                        
+                        <div class='section'>
+                            <strong>Penas accesorias:</strong> ${resultado.accesorias.length > 0 ? resultado.accesorias.join(', ') : 'Ninguna'}
+                        </div>
+                        
+                        <div class='section'>
+                            <strong>Personas jurídicas:</strong> ${resultado.aplicaPJ}
+                        </div>
+                        
+                        <div class='section'>
+                            <strong>Prescripción de la acción penal:</strong><br>
+                            ${resultado.prescripcionAccionPenal.tipo === 'IMPRESCRIPTIBLE' ? 
+                                'IMPRESCRIPTIBLE' : 
+                                `${resultado.prescripcionAccionPenal.plazo} ${resultado.prescripcionAccionPenal.unidad}`}<br>
+                            <em>${resultado.prescripcionAccionPenal.fundamento}</em>
+                        </div>
+                        
+                        <div class='section'>
+                            <strong>Prescripción de la sanción:</strong><br>
+                            ${resultado.prescripcionSancion.plazo} ${resultado.prescripcionSancion.unidad}<br>
+                            <em>${resultado.prescripcionSancion.fundamento}</em>
+                        </div>
+                        
+                        <div class='section'>
+                            <strong>Explicación detallada:</strong><br>
+                            ${resultado.explicacion.join('<br>• ')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('resultado').innerHTML = html;
+        }
+
+        // Mostrar mensaje de error
+        function mostrarError(mensaje) {
+            document.getElementById('errorMessage').innerHTML = mensaje;
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('resultado').innerHTML = '';
+        }
+
+        // Exportar a JSON
+        function exportarJSON() {
+            const datos = {
+                metadata: {
+                    fuente: 'Código Penal de Quintana Roo',
+                    articulos: delitos.map(d => d.articulo).join(', '),
+                    fechaExtraccion: new Date().toISOString(),
+                    version: '1.0'
+                },
+                delitos: delitos
+            };
+            
+            const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'codigo-penal-quintana-roo.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Exportar a CSV
+        function exportarCSV() {
+            const headers = [
+                'articulo', 'titulo', 'penaMin', 'penaMax', 'tipoDelito', 'accion',
+                'punibilidad', 'autoriaParticipacion', 'contraMenor', 'soloMulta',
+                'accesorias', 'personasJuridicas', 'prescripcionAccionPenal', 'prescripcionSanciones'
+            ];
+            
+            let csv = headers.join(',') + '\n';
+            
+            delitos.forEach(delito => {
+                const row = [
+                    delito.articulo,
+                    `"${delito.titulo}"`,
+                    delito.penaMin,
+                    delito.penaMax,
+                    `"${delito.tipoDelito}"`,
+                    `"${delito.accion}"`,
+                    `"${delito.punibilidad}"`,
+                    `"${delito.autoriaParticipacion}"`,
+                    delito.contraMenor,
+                    delito.soloMulta,
+                    `"${delito.accesorias.join('; ')}"`,
+                    delito.personasJuridicas,
+                    `"${delito.prescripcionAccionPenal}"`,
+                    `"${delito.prescripcionSanciones}"`
+                ];
+                csv += row.join(',') + '\n';
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'codigo-penal-quintana-roo.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Sincronizar input number con selector
+        document.getElementById('articleNumber').addEventListener('input', function() {
+            document.getElementById('selector').value = '';
+        });
+
+        document.getElementById('selector').addEventListener('change', function() {
+            document.getElementById('articleNumber').value = this.value;
+        });
+
+        // Permitir análisis con Enter
+        document.getElementById('articleNumber').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyzeArticle();
+            }
+        });
+
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            inicializarSelector();
+        });
+    </script>
+</body>
+</html>

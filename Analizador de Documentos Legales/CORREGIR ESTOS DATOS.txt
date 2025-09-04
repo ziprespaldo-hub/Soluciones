@@ -1,0 +1,58 @@
+
+
+file:///C:/Users/AL/Downloads/Analizador de Documentos Legales/Analizador de Documentos Legales.html
+
+CORREGIR ESTOS DATOS
+
+🔍 Análisis de Documentos
+📊 Resultados del Análisis
+📄 CI 7-2016 Alejandra Alonzo_ACTA DE DENUNCIA_Parte5.pdf
+Contrato
+Riesgo: Bajo
+
+Complejidad: Baja
+
+Tono: Neutral
+
+Resumen: CONTRATO DE PRESTACIÓN DE SERVICIOS Entre los comparecientes, de una parte DON/DOÑA [NOMBRE], mayor de edad, con DNI [NÚMERO], en calidad de CONTRATANTE, y de otra parte DON/DOÑA [NOMBRE], mayor de e...
+
+Elementos legales encontrados:
+Leyes: 0
+Artículos: 0
+Referencias: 0
+-------------------------------------------------------------
+
+📋 Informe Detallado
+📄 CI 7-2016 Alejandra Alonzo_ACTA DE DENUNCIA_Parte5.pdf
+📊 Información General
+Tipo: Contrato
+
+Tamaño: 1.78 MB
+
+Palabras: 80
+
+Párrafos: 5
+
+🎯 Análisis Semántico
+Tono: Neutral
+
+Formalidad: Formal
+
+Complejidad: Baja
+
+Sentimiento: Neutral
+
+🔍 Términos Clave Identificados
+contrato, cláusula
+
+📝 Estructura del Documento
+Encabezado: ✅
+Cláusulas: ✅
+Firma: ❌
+Fecha: ❌
+📋 Resumen del Contenido
+CONTRATO DE PRESTACIÓN DE SERVICIOS Entre los comparecientes, de una parte DON/DOÑA [NOMBRE], 
+mayor de edad, con DNI [NÚMERO], en calidad de CONTRATANTE, y de otra parte DON/DOÑA [NOMBRE], 
+mayor de e...
+------------------------------------------------------------------
+

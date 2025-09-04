@@ -1,0 +1,1717 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditor Carpeta de Investigación -131 CNPP</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border: 3px dashed #dee2e6;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #007bff;
+            background: #e3f2fd;
+        }
+
+        .upload-section.dragover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,123,255,0.3);
+        }
+
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-info {
+            flex-grow: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .file-size {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40,167,69,0.3);
+        }
+
+        .analyze-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #007bff, #28a745);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 40px;
+        }
+
+        .analysis-summary {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .score-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: white;
+            position: relative;
+        }
+
+        .score-low { background: linear-gradient(135deg, #dc3545, #c82333); }
+        .score-medium { background: linear-gradient(135deg, #ffc107, #e0a800); }
+        .score-high { background: linear-gradient(135deg, #28a745, #20c997); }
+
+        .elements-checklist {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .element-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 4px solid #dee2e6;
+        }
+
+        .element-card.present {
+            border-left-color: #28a745;
+        }
+
+        .element-card.missing {
+            border-left-color: #dc3545;
+        }
+
+        .element-card.partial {
+            border-left-color: #ffc107;
+        }
+
+        .element-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .present .status-icon { color: #28a745; }
+        .missing .status-icon { color: #dc3545; }
+        .partial .status-icon { color: #ffc107; }
+
+        .element-description {
+            color: #6c757d;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .detailed-report {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+
+        .report-section {
+            margin-bottom: 30px;
+        }
+
+        .report-section h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .export-controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .export-btn {
+            background: linear-gradient(45deg, #6f42c1, #563d7c);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(111,66,193,0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media print {
+            body { background: white; }
+            .container { box-shadow: none; }
+            .upload-section, .export-controls { display: none; }
+            .main-content { padding: 20px; }
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1em;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px dashed #ccc;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .debug-info ul {
+            font-size: 0.9em;
+            color: #333;
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Analizador de Carpetas de Investigación</h1>
+            <p>Sistema de Evaluación de Integración según CNPP - Artículo 131</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Sección de Carga de Archivos -->
+            <div class="upload-section" id="uploadSection">
+                <h2>📁 Cargar Documentos de la Carpeta de Investigación</h2>
+                <p>Soporta archivos PDF, DOC, DOCX y TXT</p>
+                <input type="file" id="fileInput" class="file-input" multiple accept=".pdf,.doc,.docx,.txt">
+                <label for="fileInput" class="upload-btn">
+                    📎 Seleccionar Archivos
+                </label>
+                <div class="file-list" id="fileList"></div>
+                <div id="debugFileOutput" class="debug-info">
+                    <strong>🧪 Archivos cargados (debug):</strong>
+                    <ul id="debugFileList"></ul>
+                </div>
+            </div>
+
+            <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysis()" disabled>
+                🔍 Analizar Carpeta de Investigación
+            </button>
+
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <!-- Sección de Resultados -->
+            <div class="results-section" id="resultsSection">
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('summary')">Resumen Ejecutivo</button>
+                    <button class="tab" onclick="showTab('checklist')">Lista de Verificación</button>
+                    <button class="tab" onclick="showTab('detailed')">Informe Detallado</button>
+                    <button class="tab" onclick="showTab('legal')">Marco Legal</button>
+                </div>
+
+                <!-- Resumen Ejecutivo -->
+                <div class="tab-content active" id="summary">
+                    <div class="analysis-summary">
+                        <div class="score-display">
+                            <div class="score-circle" id="scoreCircle">
+                                <span id="scoreText">0%</span>
+                            </div>
+                            <h3>Nivel de Judicialización</h3>
+                            <p id="scoreDescription">Evaluando...</p>
+                        </div>
+                        
+                        <div class="report-section">
+                            <h3>📊 Análisis General</h3>
+                            <div id="generalAnalysis"></div>
+                            <h3>📈 Histograma de Elementos CNPP</h3>
+                            <canvas id="cnppChart" style="max-width: 100%; height: 300px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Verificación -->
+                <div class="tab-content" id="checklist">
+                    <h2>✅ Elementos de la Carpeta de Investigación</h2>
+                    <div class="elements-checklist" id="elementsChecklist"></div>
+                </div>
+
+                <!-- Informe Detallado -->
+                <div class="tab-content" id="detailed">
+                    <div class="detailed-report" id="detailedReport"></div>
+                </div>
+
+                <!-- Marco Legal -->
+                <div class="tab-content" id="legal">
+                    <div class="detailed-report" id="legalFramework"></div>
+                </div>
+
+                <!-- Controles de Exportación -->
+                <div class="export-controls">
+                    <h3>📄 Exportar Informe</h3>
+                    <button class="export-btn" onclick="exportToHTML()">📋 Exportar HTML</button>
+                    <button class="export-btn" onclick="exportToPDF()">📑 Generar PDF</button>
+                    <button class="export-btn" onclick="printReport()">🖨️ Imprimir</button>
+                    <button class="export-btn" onclick="exportToJSON()">💾 Exportar JSON</button>
+                    <button class="export-btn" onclick="exportExecutiveSummaryToPDF()">📄 Exportar Resumen Ejecutivo</button>
+                    <button id="printExecutiveBtn" onclick="printExecutiveSummary()" style="
+                        position: fixed;
+                        bottom: 30px;
+                        right: 30px;
+                        background: #007bff;
+                        color: white;
+                        border: none;
+                        padding: 14px 20px;
+                        border-radius: 50px;
+                        box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
+                        font-size: 1em;
+                        cursor: pointer;
+                        z-index: 9999;
+                    ">
+                        🖨️ Imprimir Resumen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+	<div id="avepdf-container-id">
+<script type="text/javascript" src="https://avepdf.com/api/js/embedwidgets.js"></script>
+	<script type="text/javascript">
+		loadAvePDFWidget('cfa08d51-b5c4-4b96-b356-84967699309e', 'auto', 'cleanup-pdf', 'avepdf-container-id');
+	</script>
+</div>
+<div id="avepdf-container-id">
+<script type="text/javascript" src="https://avepdf.com/api/js/embedwidgets.js"></script>
+	<script type="text/javascript">
+		loadAvePDFWidget('cfa08d51-b5c4-4b96-b356-84967699309e', 'auto', 'hyper-compress-pdf', 'avepdf-container-id');
+	</script>
+</div>
+<div id="avepdf-container-id">
+<script type="text/javascript" src="https://avepdf.com/api/js/embedwidgets.js"></script>
+	<script type="text/javascript">
+		loadAvePDFWidget('cfa08d51-b5c4-4b96-b356-84967699309e', 'auto', 'pdf-ocr', 'avepdf-container-id');
+	</script>
+</div>
+
+    <script>
+        // Variables globales
+        let uploadedFiles = [];
+        let analysisResults = {};
+        let processedDocuments = [];
+
+        // Elementos CNPP requeridos para carpeta de investigación
+        const requiredElements = {
+            'denuncia_querella': {
+                name: 'Denuncia o Querella',
+                description: 'Documento inicial que da inicio a la investigación',
+                keywords: ['denuncia', 'querella', 'hechos', 'delito', 'narración'],
+                weight: 15,
+                required: true
+            },
+            'entrevista_victima': {
+                name: 'Entrevista de la Víctima',
+                description: 'Declaración formal de la persona ofendida',
+                keywords: ['víctima', 'ofendido', 'entrevista', 'declaración', 'testimonio'],
+                weight: 12,
+                required: true
+            },
+            'entrevista_testigos': {
+                name: 'Entrevistas de Testigos',
+                description: 'Declaraciones de personas que presenciaron los hechos',
+                keywords: ['testigo', 'presencial', 'observó', 'vio', 'escuchó'],
+                weight: 10,
+                required: false
+            },
+            'entrevista_policia': {
+                name: 'Entrevista a Policías',
+                description: 'Declaración de elementos policiales intervinientes',
+                keywords: ['policía', 'oficial', 'agente', 'elemento', 'intervención'],
+                weight: 8,
+                required: false
+            },
+            'inspeccion_lugar': {
+                name: 'Inspección del Lugar de los Hechos',
+                description: 'Registro detallado del sitio donde ocurrieron los hechos',
+                keywords: ['inspección', 'lugar', 'sitio', 'escena', 'criminalística'],
+                weight: 12,
+                required: true
+            },
+            'cadena_custodia': {
+                name: 'Cadena de Custodia',
+                description: 'Registro de manejo de evidencias y objetos',
+                keywords: ['cadena', 'custodia', 'evidencia', 'indicio', 'objeto'],
+                weight: 10,
+                required: true
+            },
+            'dictamen_pericial': {
+                name: 'Dictámenes Periciales',
+                description: 'Análisis técnico-científico de evidencias',
+                keywords: ['perito', 'dictamen', 'análisis', 'laboratorio', 'técnico'],
+                weight: 8,
+                required: false
+            },
+            'informe_investigacion': {
+                name: 'Informe de Investigación',
+                description: 'Resumen de actividades investigativas realizadas',
+                keywords: ['informe', 'investigación', 'actividades', 'diligencias'],
+                weight: 8,
+                required: true
+            },
+            'acuerdo_reparatorio': {
+                name: 'Acuerdo Reparatorio',
+                description: 'Convenio entre víctima e imputado (si aplica)',
+                keywords: ['acuerdo', 'reparatorio', 'convenio', 'reparación'],
+                weight: 5,
+                required: false
+            },
+            'orden_aprehension': {
+                name: 'Orden de Aprehensión',
+                description: 'Mandamiento judicial para detención (si aplica)',
+                keywords: ['orden', 'aprehensión', 'detención', 'mandamiento'],
+                weight: 7,
+                required: false
+            }
+        };
+
+        // Inicialización cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Inicializando aplicación...');
+            setupFileUpload();
+            setupDragAndDrop();
+        });
+
+        // Configuración de carga de archivos
+        function setupFileUpload() {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.addEventListener('change', handleFileSelect);
+            console.log('Event listener para archivos configurado');
+        }
+
+        // Configuración de drag & drop
+        function setupDragAndDrop() {
+            const uploadSection = document.getElementById('uploadSection');
+            
+            uploadSection.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadSection.classList.add('dragover');
+            });
+
+            uploadSection.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadSection.classList.remove('dragover');
+            });
+
+            uploadSection.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadSection.classList.remove('dragover');
+                const files = Array.from(e.dataTransfer.files);
+                handleFiles(files);
+            });
+        }
+
+        // Manejo de selección de archivos
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            console.log('Archivos seleccionados:', files);
+            handleFiles(files);
+        }
+
+        // Procesamiento de archivos
+        function handleFiles(files) {
+            const validTypes = ['.pdf', '.doc', '.docx', '.txt'];
+            
+            files.forEach(file => {
+                const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+                if (validTypes.includes(fileExtension)) {
+                    uploadedFiles.push({
+                        file,
+                        name: file.name,
+                        size: file.size,
+                        type: fileExtension,
+                        id: Date.now() + Math.random()
+                    });
+                } else {
+                    alert(`Archivo ${file.name} no es compatible. Solo se aceptan PDF, DOC, DOCX y TXT.`);
+                }
+            });
+
+            console.log('Archivos válidos cargados:', uploadedFiles);
+            updateFileList();
+            updateAnalyzeButton();
+            updateDebugInfo();
+        }
+
+        // Actualizar información de debug
+        function updateDebugInfo() {
+            const debugList = document.getElementById('debugFileList');
+            if (debugList) {
+                debugList.innerHTML = uploadedFiles.map(f =>
+                    `<li>${f.name} - ${f.type.toUpperCase()} - ${formatFileSize(f.size)}</li>`
+                ).join('');
+            }
+        }
+
+        // Actualizar lista de archivos
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            
+            if (uploadedFiles.length === 0) {
+                fileList.innerHTML = '';
+                return;
+            }
+
+            fileList.innerHTML = uploadedFiles.map(fileObj => `
+                <div class="file-item">
+                    <div class="file-info">
+                        <div class="file-name">📄 ${fileObj.name}</div>
+                        <div class="file-size">${formatFileSize(fileObj.size)} - ${fileObj.type.toUpperCase()}</div>
+                    </div>
+                    <button class="remove-btn" onclick="removeFile('${fileObj.id}')">❌</button>
+                </div>
+            `).join('');
+        }
+
+        // Remover archivo
+        function removeFile(fileId) {
+            uploadedFiles = uploadedFiles.filter(f => f.id != fileId);
+            updateFileList();
+            updateAnalyzeButton();
+            updateDebugInfo();
+        }
+
+        // Formatear tamaño de archivo
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Actualizar botón de análisis
+        function updateAnalyzeButton() {
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            analyzeBtn.disabled = uploadedFiles.length === 0;
+        }
+
+        // Mostrar pestañas
+        function showTab(tabName) {
+            // Ocultar todos los contenidos
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Desactivar todas las pestañas
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar contenido seleccionado
+            document.getElementById(tabName).classList.add('active');
+            
+            // Activar pestaña seleccionada
+            event.target.classList.add('active');
+        }
+
+        // Iniciar análisis
+        async function startAnalysis() {
+            if (uploadedFiles.length === 0) return;
+
+            console.log('Iniciando análisis de', uploadedFiles.length, 'archivos');
+            
+            // Mostrar progreso
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('analyzeBtn').disabled = true;
+            
+            try {
+                // Procesar archivos
+                processedDocuments = [];
+                for (let i = 0; i < uploadedFiles.length; i++) {
+                    updateProgress((i / uploadedFiles.length) * 50);
+                    const processedDoc = await processDocument(uploadedFiles[i]);
+                    processedDocuments.push(processedDoc);
+                }
+
+                console.log('Documentos procesados:', processedDocuments);
+
+                // Analizar contenido
+                updateProgress(60);
+                analysisResults = await analyzeDocuments(processedDocuments);
+                
+                // Generar reportes
+                updateProgress(80);
+                generateReports();
+                
+                updateProgress(100);
+                
+                // Mostrar resultados
+                document.getElementById('resultsSection').style.display = 'block';
+                document.getElementById('progressBar').style.display = 'none';
+                
+            } catch (error) {
+                console.error('Error en análisis:', error);
+                alert('Error al procesar documentos: ' + error.message);
+            } finally {
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        }
+
+        // Actualizar barra de progreso
+        function updateProgress(percentage) {
+            document.getElementById('progressFill').style.width = percentage + '%';
+        }
+
+        // NOTA: Las siguientes funciones necesitan la segunda parte del código para completarse:
+        // - processDocument()
+        // - analyzeDocuments()
+        // - generateReports()
+        // - Funciones de exportación
+        
+        // Procesar documento específico
+        async function processDocument(fileObj) {
+            console.log('Procesando documento:', fileObj.name);
+            
+            try {
+                let content = '';
+                const file = fileObj.file;
+                
+                if (fileObj.type === '.txt') {
+                    content = await readTextFile(file);
+                } else if (fileObj.type === '.pdf') {
+                    content = await readPDFFile(file);
+                } else if (fileObj.type === '.doc' || fileObj.type === '.docx') {
+                    content = await readWordFile(file);
+                }
+                
+                return {
+                    name: fileObj.name,
+                    type: fileObj.type,
+                    content: content,
+                    wordCount: content.split(/\s+/).length,
+                    status: 'processed'
+                };
+            } catch (error) {
+                console.error('Error procesando documento:', error);
+                return {
+                    name: fileObj.name,
+                    type: fileObj.type,
+                    content: '',
+                    wordCount: 0,
+                    status: 'error',
+                    error: error.message
+                };
+            }
+        }
+
+        // Leer archivo de texto
+        async function readTextFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = e => reject(new Error('Error leyendo archivo de texto'));
+                reader.readAsText(file, 'UTF-8');
+            });
+        }
+
+        // Leer archivo PDF
+        async function readPDFFile(file) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let fullText = '';
+                
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + '\n';
+                }
+                
+                return fullText;
+            } catch (error) {
+                console.error('Error leyendo PDF:', error);
+                throw new Error('No se pudo leer el archivo PDF');
+            }
+        }
+
+        // Leer archivo Word
+        async function readWordFile(file) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer });
+                return result.value;
+            } catch (error) {
+                console.error('Error leyendo Word:', error);
+                throw new Error('No se pudo leer el archivo Word');
+            }
+        }
+
+        // Analizar documentos procesados
+        async function analyzeDocuments(documents) {
+            console.log('Iniciando análisis de documentos...');
+            
+            const results = {
+                totalDocuments: documents.length,
+                totalWords: documents.reduce((sum, doc) => sum + doc.wordCount, 0),
+                elements: {},
+                score: 0,
+                analysis: '',
+                recommendations: [],
+                missingElements: [],
+                foundElements: []
+            };
+
+            // Analizar cada elemento requerido
+            for (const [key, element] of Object.entries(requiredElements)) {
+                const elementResult = analyzeElement(documents, element);
+                results.elements[key] = elementResult;
+                
+                if (elementResult.found) {
+                    results.foundElements.push(element.name);
+                } else if (element.required) {
+                    results.missingElements.push(element.name);
+                }
+            }
+
+            // Calcular puntuación
+            results.score = calculateScore(results.elements);
+            
+            // Generar análisis textual
+            results.analysis = generateAnalysisText(results);
+            
+            // Generar recomendaciones
+            results.recommendations = generateRecommendations(results);
+
+            console.log('Análisis completado:', results);
+            return results;
+        }
+
+        // Analizar elemento específico
+        function analyzeElement(documents, element) {
+            let found = false;
+            let confidence = 0;
+            let evidence = [];
+            let documentMatches = [];
+
+            documents.forEach(doc => {
+                if (doc.status === 'error') return;
+                
+                const content = doc.content.toLowerCase();
+                let docScore = 0;
+                let docEvidence = [];
+
+                element.keywords.forEach(keyword => {
+                    const regex = new RegExp(`\\b${keyword.toLowerCase()}\\b`, 'gi');
+                    const matches = content.match(regex);
+                    if (matches) {
+                        docScore += matches.length;
+                        docEvidence.push(`"${keyword}" (${matches.length} veces)`);
+                    }
+                });
+
+                if (docScore > 0) {
+                    found = true;
+                    documentMatches.push({
+                        document: doc.name,
+                        score: docScore,
+                        evidence: docEvidence
+                    });
+                    evidence = evidence.concat(docEvidence);
+                }
+            });
+
+            // Calcular confianza basada en número de coincidencias
+            if (found) {
+                const totalMatches = documentMatches.reduce((sum, match) => sum + match.score, 0);
+                confidence = Math.min(totalMatches / element.keywords.length * 20, 100);
+            }
+
+            return {
+                found,
+                confidence: Math.round(confidence),
+                evidence,
+                documentMatches,
+                required: element.required,
+                weight: element.weight
+            };
+        }
+
+        // Calcular puntuación general
+        function calculateScore(elements) {
+            let totalWeight = 0;
+            let achievedWeight = 0;
+
+            for (const [key, element] of Object.entries(elements)) {
+                const requiredElement = requiredElements[key];
+                totalWeight += requiredElement.weight;
+                
+                if (element.found) {
+                    achievedWeight += requiredElement.weight * (element.confidence / 100);
+                }
+            }
+
+            return Math.round((achievedWeight / totalWeight) * 100);
+        }
+
+        // Generar texto de análisis
+        function generateAnalysisText(results) {
+            let analysis = `Se analizaron ${results.totalDocuments} documentos con un total de ${results.totalWords.toLocaleString()} palabras.\n\n`;
+            
+            analysis += `ELEMENTOS ENCONTRADOS (${results.foundElements.length}):\n`;
+            results.foundElements.forEach(element => {
+                analysis += `• ${element}\n`;
+            });
+            
+            if (results.missingElements.length > 0) {
+                analysis += `\nELEMENTOS FALTANTES REQUERIDOS (${results.missingElements.length}):\n`;
+                results.missingElements.forEach(element => {
+                    analysis += `• ${element}\n`;
+                });
+            }
+
+            return analysis;
+        }
+
+        // Generar recomendaciones
+        function generateRecommendations(results) {
+            const recommendations = [];
+            
+            if (results.score < 50) {
+                recommendations.push('La carpeta de investigación presenta deficiencias graves que impiden su judicialización.');
+            } else if (results.score < 75) {
+                recommendations.push('La carpeta requiere complementar elementos antes de proceder a judicialización.');
+            } else {
+                recommendations.push('La carpeta cumple con los elementos mínimos para judicialización.');
+            }
+
+            // Recomendaciones específicas por elementos faltantes
+            results.missingElements.forEach(element => {
+                recommendations.push(`Se requiere incorporar: ${element}`);
+            });
+
+            return recommendations;
+        }
+
+        // Generar todos los reportes
+        function generateReports() {
+            generateExecutiveSummary();
+            generateChecklist();
+            generateDetailedReport();
+            generateLegalFramework();
+            generateChart();
+        }
+
+        // Generar resumen ejecutivo
+        function generateExecutiveSummary() {
+            const scoreCircle = document.getElementById('scoreCircle');
+            const scoreText = document.getElementById('scoreText');
+            const scoreDescription = document.getElementById('scoreDescription');
+            const generalAnalysis = document.getElementById('generalAnalysis');
+
+            // Actualizar puntuación
+            scoreText.textContent = analysisResults.score + '%';
+            
+            // Determinar clase de color
+            if (analysisResults.score >= 75) {
+                scoreCircle.className = 'score-circle score-high';
+                scoreDescription.textContent = 'Apto para Judicialización';
+            } else if (analysisResults.score >= 50) {
+                scoreCircle.className = 'score-circle score-medium';
+                scoreDescription.textContent = 'Requiere Complementos';
+            } else {
+                scoreCircle.className = 'score-circle score-low';
+                scoreDescription.textContent = 'No Apto - Deficiencias Graves';
+            }
+
+            // Análisis general
+            generalAnalysis.innerHTML = `
+                <div style="text-align: left;">
+                    <h4>📋 Resumen del Análisis</h4>
+                    <p><strong>Documentos Analizados:</strong> ${analysisResults.totalDocuments}</p>
+                    <p><strong>Total de Palabras:</strong> ${analysisResults.totalWords.toLocaleString()}</p>
+                    <p><strong>Elementos Encontrados:</strong> ${analysisResults.foundElements.length}/10</p>
+                    <p><strong>Elementos Faltantes Críticos:</strong> ${analysisResults.missingElements.length}</p>
+                    
+                    <h4>🎯 Recomendaciones Principales</h4>
+                    <ul>
+                        ${analysisResults.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        // Generar lista de verificación
+        function generateChecklist() {
+            const checklist = document.getElementById('elementsChecklist');
+            
+            checklist.innerHTML = Object.entries(requiredElements).map(([key, element]) => {
+                const result = analysisResults.elements[key];
+                let status, icon;
+                
+                if (result.found) {
+                    if (result.confidence >= 80) {
+                        status = 'present';
+                        icon = '✅';
+                    } else {
+                        status = 'partial';
+                        icon = '⚠️';
+                    }
+                } else {
+                    status = 'missing';
+                    icon = '❌';
+                }
+
+                return `
+                    <div class="element-card ${status}">
+                        <div class="element-title">
+                            <span class="status-icon">${icon}</span>
+                            ${element.name}
+                            ${element.required ? '<span style="color: #dc3545; font-size: 0.8em;">(REQUERIDO)</span>' : ''}
+                        </div>
+                        <div class="element-description">
+                            ${element.description}
+                            ${result.found ? `<br><strong>Confianza:</strong> ${result.confidence}%` : ''}
+                            ${result.evidence.length > 0 ? `<br><strong>Evidencia:</strong> ${result.evidence.slice(0, 3).join(', ')}` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Generar reporte detallado
+        function generateDetailedReport() {
+            const detailedReport = document.getElementById('detailedReport');
+            
+            detailedReport.innerHTML = `
+                <h2>📊 Informe Detallado de Análisis</h2>
+                
+                <div class="report-section">
+                    <h3>🎯 Puntuación General</h3>
+                    <p>La carpeta de investigación obtuvo una puntuación de <strong>${analysisResults.score}%</strong>, lo que indica un nivel de integración ${getScoreLevel(analysisResults.score)}.</p>
+                </div>
+
+                <div class="report-section">
+                    <h3>📋 Análisis por Documento</h3>
+                    ${processedDocuments.map(doc => `
+                        <div style="border-left: 3px solid #007bff; padding-left: 15px; margin: 15px 0;">
+                            <h4>${doc.name}</h4>
+                            <p><strong>Tipo:</strong> ${doc.type.toUpperCase()}</p>
+                            <p><strong>Palabras:</strong> ${doc.wordCount.toLocaleString()}</p>
+                            <p><strong>Estado:</strong> ${doc.status === 'processed' ? '✅ Procesado' : '❌ Error'}</p>
+                            ${doc.error ? `<p style="color: #dc3545;"><strong>Error:</strong> ${doc.error}</p>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="report-section">
+                    <h3>🔍 Análisis Detallado por Elemento</h3>
+                    ${Object.entries(requiredElements).map(([key, element]) => {
+                        const result = analysisResults.elements[key];
+                        return `
+                            <div style="border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0;">
+                                <h4>${result.found ? '✅' : '❌'} ${element.name}</h4>
+                                <p><strong>Descripción:</strong> ${element.description}</p>
+                                <p><strong>Requerido:</strong> ${element.required ? 'Sí' : 'No'}</p>
+                                <p><strong>Peso:</strong> ${element.weight}%</p>
+                                <p><strong>Estado:</strong> ${result.found ? `Encontrado (${result.confidence}% confianza)` : 'No encontrado'}</p>
+                                
+                                ${result.documentMatches.length > 0 ? `
+                                    <p><strong>Documentos con coincidencias:</strong></p>
+                                    <ul>
+                                        ${result.documentMatches.map(match => `
+                                            <li>${match.document} - ${match.score} coincidencias</li>
+                                        `).join('')}
+                                    </ul>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // Generar marco legal
+        function generateLegalFramework() {
+            const legalFramework = document.getElementById('legalFramework');
+            
+            legalFramework.innerHTML = `
+                <h2>⚖️ Marco Legal de Referencia</h2>
+                
+                <div class="report-section">
+                    <h3>📖 Código Nacional de Procedimientos Penales - Artículo 131</h3>
+                    <p>El artículo 131 del CNPP establece los elementos mínimos que debe contener la carpeta de investigación para su correcta integración y posterior judicialización.</p>
+					<ul>
+					<p>Artículo 212 Deber de investigación penal</p>
+					<p>Cuando el Ministerio Público tenga conocimiento de la existencia de un hecho que la ley señale como delito, dirigirá la investigación penal, sin que pueda suspender, interrumpir o hacer cesar su curso, salvo en los casos autorizados en la misma.</p>
+					<p>La investigación deberá realizarse de manera inmediata, eficiente, exhaustiva, profesional e imparcial, libre de estereotipos y discriminación, orientada a explorar todas las líneas de investigación posibles que permitan allegarse de datos para el esclarecimiento del hecho que la ley señala como delito, así como la identificación de quien lo cometió o participó en su comisión.</p>
+					<ul>
+					<p>Artículo 213 Objeto de la investigación</p>
+					<p>La investigación tiene por objeto que el Ministerio Público reúna indicios para el esclarecimiento de los hechos y, en su caso, los datos de prueba para sustentar el ejercicio de la acción penal, la acusación contra el imputado y la reparación del daño.</p>
+					<ul>
+					<p>Artículo 214 Principios que rigen a las autoridades de la investigación</p>
+					<p>Las autoridades encargadas de desarrollar la investigación de los delitos se regirán por los principios de legalidad, objetividad, eficiencia, profesionalismo, honradez, lealtad y respeto a los derechos humanos reconocidos en la Constitución y en los Tratados.</p>
+					<ul>
+					<p>Artículo 215 Obligación de suministrar información</p>
+					<p>Toda persona o servidor público está obligado a proporcionar oportunamente la información que requieran el Ministerio Público y la Policía en el ejercicio de sus funciones de investigación de un hecho delictivo concreto. En caso de ser citados para ser entrevistados por el Ministerio Público o la Policía, tienen obligación de comparecer y sólo podrán excusarse en los casos expresamente previstos en la ley. En caso de incumplimiento, se incurrirá en responsabilidad y será sancionado de conformidad con las leyes aplicables.</p>
+					<ul>
+					<p>Artículo 216 Proposición de actos de investigación</p>
+					<p>Durante la investigación, tanto el imputado cuando haya comparecido o haya sido entrevistado, como su Defensor, así como la víctima u ofendido, podrán solicitar al Ministerio Público todos aquellos actos de investigación que consideraren pertinentes y útiles para el esclarecimiento de los hechos. El Ministerio Público ordenará que se lleven a cabo aquellos que sean conducentes. La solicitud deberá resolverse en un plazo máximo de tres días siguientes a la fecha en que se haya formulado la petición al Ministerio Público.</p>
+					<ul>
+					<p>Artículo 217 Registro de los actos de investigación</p>
+					<p>El Ministerio Público y la Policía deberán dejar registro de todas las actuaciones que se realicen durante la investigación de los delitos, utilizando al efecto cualquier medio que permita garantizar que la información recabada sea completa, íntegra y exacta, así como el acceso a la misma por parte de los sujetos que de acuerdo con la ley tuvieren derecho a exigirlo.</p>
+					<p>Cada acto de investigación se registrará por separado, y será firmado por quienes hayan intervenido. Si no quisieren o no pudieren firmar, se imprimirá su huella digital. En caso de que esto no sea posible o la persona se niegue a imprimir su huella, se hará constar el motivo.</p>
+					<p>El registro de cada actuación deberá contener por lo menos la indicación de la fecha, hora y lugar en que se haya efectuado, identificación de los servidores públicos y demás personas que hayan intervenido y una breve descripción de la actuación y, en su caso, de sus resultados.</p>
+					<ul>
+					<p>Artículo 218 Reserva de los actos de investigación</p>
+					<p>Los registros de la investigación, así como todos los documentos, independientemente de su contenido o naturaleza, los objetos, los registros de voz e imágenes o cosas que le estén relacionados, son estrictamente reservados, por lo que únicamente las partes, podrán tener acceso a los mismos, con las limitaciones establecidas en este Código y demás disposiciones aplicables.</p>
+					<p>La víctima u ofendido y su Asesor Jurídico podrán tener acceso a los registros de la investigación en cualquier momento.</p>
+					<p>El imputado y su defensor podrán tener acceso a ellos cuando se encuentre detenido, sea citado para comparecer como imputado o sea sujeto de un acto de molestia y se pretenda recibir su entrevista, a partir de este momento ya no podrán mantenerse en reserva los registros para el imputado o su Defensor a fin de no afectar su derecho de defensa. Para los efectos de este párrafo, se entenderá como acto de molestia lo dispuesto en el artículo 266 de este Código.</p>
+					<p>En ningún caso la reserva de los registros podrá hacerse valer en perjuicio del imputado y su Defensor, una vez dictado el auto de vinculación a proceso, salvo lo previsto en este Código o en las leyes especiales.</p>
+					<p>Para efectos de acceso a la información pública gubernamental, el Ministerio Público únicamente deberá proporcionar una versión pública de las determinaciones de no ejercicio de la acción penal, archivo temporal o de aplicación de un criterio de oportunidad, siempre que haya transcurrido un plazo igual al de prescripción de los delitos de que se trate, de conformidad con lo dispuesto en el Código Penal Federal o estatal correspondiente, sin que pueda ser menor de tres años, ni mayor de doce años, contado a partir de que dicha determinación haya quedado firme.</p>
+										<p>(ARTÍCULO REFORMADO D.O.F. 17 DE JUNIO DE 2016)</p>
+					<ul>
+					<p>Artículo 219 Acceso a los registros y la audiencia inicial</p>
+					<p>Una vez convocados a la audiencia inicial, el imputado y su Defensor tienen derecho a consultar los registros de la investigación y a obtener copia, con la oportunidad debida para preparar la defensa. En caso que el Ministerio Público se niegue a permitir el acceso a los registros o a la obtención de las copias, podrán acudir ante el Juez de control para que resuelva lo conducente.</p>
+					<ul>
+					<p>Artículo 220 Excepciones para el acceso a la información</p>
+					<p>El Ministerio Público podrá solicitar excepcionalmente al Juez de control que determinada información se mantenga bajo reserva aún después de la vinculación a proceso, cuando sea necesario para evitar la destrucción, alteración u ocultamiento de pruebas, la intimidación, amenaza o influencia a los testigos del hecho, para asegurar el éxito de la investigación, o para garantizar la protección de personas o bienes jurídicos.</p>
+					<p>Si el Juez de control considera procedente la solicitud, así lo resolverá y determinará el plazo de la reserva, siempre que la información que se solicita sea reservada, sea oportunamente revelada para no afectar el derecho de defensa. La reserva podrá ser prorrogada cuando sea estrictamente necesario, pero no podrá prolongarse hasta después de la formulación de la acusación.</p>
+					<ul>
+					<p>Artículo 221 Formas de inicio</p>
+					<p>La investigación de los hechos que revistan características de un delito podrá iniciarse por denuncia, por querella o por su equivalente cuando la ley lo exija. El Ministerio Público y la Policía están obligados a proceder sin mayores requisitos a la investigación de los hechos de los que tengan noticia.</p>
+					<p>Tratándose de delitos que deban perseguirse de oficio, bastará para el inicio de la investigación la comunicación que haga cualquier persona, en la que se haga del conocimiento de la autoridad investigadora los hechos que pudieran ser constitutivos de un delito.</p>
+					<p>Tratándose de informaciones anónimas, la Policía constatará la veracidad de los datos aportados mediante los actos de investigación que consideren conducentes para este efecto. De confirmarse la información, se iniciará la investigación correspondiente.</p>
+					<p>Cuando el Ministerio Público tenga conocimiento de la probable comisión de un hecho delictivo cuya persecución dependa de querella o de cualquier otro requisito equivalente que deba formular alguna autoridad, lo comunicará por escrito y de inmediato a ésta, a fin de que resuelva lo que a sus facultades o atribuciones corresponda. Las autoridades harán saber por escrito al Ministerio Público la determinación que adopten.</p>
+					<p>El Ministerio Público podrá aplicar el criterio de oportunidad en los casos previstos por las disposiciones legales aplicables o no iniciar investigación cuando resulte evidente que no hay delito que perseguir. Las decisiones del Ministerio Público serán impugnables en los términos que prevé este Código.</p>
+					<ul>
+					<p>Artículo 222 Deber de denunciar</p>
+					<p>Toda persona a quien le conste que se ha cometido un hecho probablemente constitutivo de un delito está obligada a denunciarlo ante el Ministerio Público y en caso de urgencia ante cualquier agente de la Policía.</p>
+					<p>Quien en ejercicio de funciones públicas tenga conocimiento de la probable existencia de un hecho que la ley señale como delito, está obligado a denunciarlo inmediatamente al Ministerio Público, proporcionándole todos los datos que tuviere, poniendo a su disposición a los imputados, si hubieren sido detenidos en flagrancia. Quien tenga el deber jurídico de denunciar y no lo haga, será acreedor a las sanciones correspondientes.</p>
+					<p>Cuando el ejercicio de las funciones públicas a que se refiere el párrafo anterior, correspondan a la coadyuvancia con las autoridades responsables de la seguridad pública, además de cumplir con lo previsto en dicho párrafo, la intervención de los servidores públicos respectivos deberá limitarse a preservar el lugar de los hechos hasta el arribo de las autoridades competentes y, en su caso, adoptar las medidas a su alcance para que se brinde atención médica de urgencia a los heridos si los hubiere, así como poner a disposición de la autoridad a los detenidos por conducto o en coordinación con la policía.</p>
+					<p>(PÁRRAFO ADICIONADO D.O.F. 17 DE JUNIO DE 2016)</p>
+					<p>No estarán obligados a denunciar quienes al momento de la comisión del delito detenten el carácter de tutor, curador, pupilo, cónyuge, concubina o concubinario, conviviente del imputado, los parientes por consanguinidad o por afinidad en la línea recta ascendente o descendente hasta el cuarto grado y en la colateral por consanguinidad o afinidad, hasta el segundo grado inclusive.</p>
+					<ul>
+					<p>Artículo 223 Forma y contenido de la denuncia</p>
+					<p>La denuncia podrá formularse por cualquier medio y deberá contener, salvo los casos de denuncia anónima o reserva de identidad, la identificación del denunciante, su domicilio, la narración circunstanciada del hecho, la indicación de quién o quiénes lo habrían cometido y de las personas que lo hayan presenciado o que tengan noticia de él y todo cuanto le constare al denunciante.</p>
+					<p>En el caso de que la denuncia se haga en forma oral, se levantará un registro en presencia del denunciante, quien previa lectura que se haga de la misma, lo firmará junto con el servidor público que la reciba. La denuncia escrita será firmada por el denunciante.</p>
+					<p>En ambos casos, si el denunciante no pudiere firmar, estampará su huella digital, previa lectura que se le haga de la misma.</p>
+					<ul>
+					<p>Artículo 224 Trámite de la denuncia</p>
+					<p>Cuando la denuncia sea presentada directamente ante el Ministerio Público, éste iniciará la investigación conforme a las reglas previstas en este Código.</p>
+					<p>Cuando la denuncia sea presentada ante la Policía, ésta informará de dicha circunstancia al Ministerio Público en forma inmediata y por cualquier medio, sin perjuicio de realizar las diligencias urgentes que se requieran dando cuenta de ello en forma posterior al Ministerio Público.</p>
+					<ul>
+					<p>Artículo 225 Querella u otro requisito equivalente</p>
+					<p>La querella es la expresión de la voluntad de la víctima u ofendido o de quien legalmente se encuentre facultado para ello, mediante la cual manifiesta expresamente ante el Ministerio Público su pretensión de que se inicie la investigación de uno o varios hechos que la ley señale como delitos y que requieran de este requisito de procedibilidad para ser investigados y, en su caso, se ejerza la acción penal correspondiente.</p>
+					<p>La querella deberá contener, en lo conducente, los mismos requisitos que los previstos para la denuncia. El Ministerio Público deberá cerciorarse que éstos se encuentren debidamente satisfechos para, en su caso, proceder en los términos que prevé el presente Código. Tratándose de requisitos de procedibilidad equivalentes, el Ministerio Público deberá realizar la misma verificación.</p>
+					<ul>
+					<p>Artículo 226 Querella de personas menores de edad o que no tienen capacidad para comprender el significado del hecho</p>
+					<p>Tratándose de personas menores de dieciocho años, o de personas que no tengan la capacidad de comprender el significado del hecho, la querella podrá ser presentada por quienes ejerzan la patria potestad o la tutela o sus representantes legales, sin perjuicio de que puedan hacerlo por sí mismos, por sus hermanos o un tercero, cuando se trate de delitos cometidos en su contra por quienes ejerzan la patria potestad, la tutela o sus propios representantes.</p>
+					<ul>
+					<p>Artículo 227 Cadena de custodia</p>
+					<p>La cadena de custodia es el sistema de control y registro que se aplica al indicio, evidencia, objeto, instrumento o producto del hecho delictivo, desde su localización, descubrimiento o aportación, en el lugar de los hechos o del hallazgo, hasta que la autoridad competente ordene su conclusión.</p>
+					<p>Con el fin de corroborar los elementos materiales probatorios y la evidencia física, la cadena de custodia se aplicará teniendo en cuenta los siguientes factores: identidad, estado original, condiciones de recolección, preservación, empaque y traslado; lugares y fechas de permanencia y los cambios que en cada custodia se hayan realizado; igualmente se registrará el nombre y la identificación de todas las personas que hayan estado en contacto con esos elementos.</p>
+					<ul>
+					<p>Artículo 228 Responsables de cadena de custodia</p>
+					<p>La aplicación de la cadena de custodia es responsabilidad de quienes, en cumplimiento de las funciones propias de su encargo o actividad, en los términos de ley, tengan contacto con los indicios, vestigios, evidencias, objetos, instrumentos o productos del hecho delictivo.</p>
+					<p>Cuando durante el procedimiento de cadena de custodia los indicios, huellas o vestigios del hecho delictivo, así como los instrumentos, objetos o productos del delito se alteren, no perderán su valor probatorio, a menos que la autoridad competente verifique que han sido modificados de tal forma que hayan perdido su eficacia para acreditar el hecho o circunstancia de que se trate. Los indicios, huellas o vestigios del hecho delictivo, así como los instrumentos, objetos o productos del delito deberán concatenarse con otros medios probatorios para tal fin. Lo anterior, con independencia de la responsabilidad en que pudieran incurrir los servidores públicos por la inobservancia de este procedimiento.</p>
+					<ul>
+					<p>Artículo 229 Aseguramiento de bienes, instrumentos, objetos o productos del delito</p>
+					<p>Los instrumentos, objetos o productos del delito, así como los bienes en que existan huellas o pudieran tener relación con éste, siempre que guarden relación directa con el lugar de los hechos o del hallazgo, serán asegurados durante el desarrollo de la investigación, a fin de que no se alteren, destruyan o desaparezcan. Para tales efectos se establecerán controles específicos para su resguardo, que atenderán como mínimo a la naturaleza del bien y a la peligrosidad de su conservación.</p>
+					<ul>
+					<p>Artículo 230 Reglas sobre el aseguramiento de bienes</p>
+					<p>El aseguramiento de bienes se realizará conforme a lo siguiente:</p>
+					<p>I.El Ministerio Público, o la Policía en auxilio de éste, deberá elaborar un inventario de todos y cada uno de los bienes que se pretendan asegurar, firmado por el imputado o la persona con quien se atienda el acto de investigación. Ante su ausencia o negativa, la relación deberá ser firmada por dos testigos presenciales que preferentemente no sean miembros de la Policía y cuando ello suceda, que no hayan participado materialmente en la ejecución del acto;</p>
+					<p>II.La Policía deberá tomar las providencias necesarias para la debida preservación del lugar de los hechos o del hallazgo y de los indicios, huellas, o vestigios del hecho delictivo, así como de los instrumentos, objetos o productos del delito asegurados, y</p>
+					<p>III.Los bienes asegurados y el inventario correspondiente se pondrán a la brevedad a disposición de la autoridad competente, de conformidad con las disposiciones aplicables. Se deberá informar si los bienes asegurados son indicio, evidencia física, objeto, instrumento o producto del hecho delictivo.</p>
+					<ul>
+					<p>Artículo 230. Reglas sobre el aseguramiento de bienes</p>
+					<p>El aseguramiento de bienes se realizará conforme a lo siguiente:</p>
+					<p>I. El Ministerio Público, o la Policía en auxilio de éste, deberá elaborar un inventario de todos y cada uno de los bienes que se pretendan asegurar, firmado por el imputado o la persona con quien se atienda el acto de investigación. Ante su ausencia o negativa, la relación deberá ser firmada por dos testigos presenciales que preferentemente no sean miembros de la Policía y cuando ello suceda, que no hayan participado materialmente en la ejecución del acto;</p>
+					<p>II. La Policía deberá tomar las providencias necesarias para la debida preservación del lugar de los hechos o del hallazgo y de los indicios, huellas, o vestigios del hecho delictivo, así como de los instrumentos, objetos o productos del delito asegurados, y</p>
+					<p>III. Los bienes asegurados y el inventario correspondiente se pondrán a la brevedad a disposición de la autoridad competente, de conformidad con las disposiciones aplicables. Se deberá informar si los bienes asegurados son indicio, evidencia física, objeto, instrumento o producto del hecho delictivo.</p>
+					<ul>
+					<p>Artículo 231. Notificación del aseguramiento y abandono</p>
+					<p>El Ministerio Público deberá notificar al interesado o a su representante legal el aseguramiento del objeto, instrumento o producto del delito, dentro de los sesenta días naturales siguientes a su ejecución, entregando o poniendo a su disposición, según sea el caso, una copia del registro de aseguramiento, para que manifieste lo que a su derecho convenga.</p>
+					<p>En la notificación se apercibirá al interesado o a su representante legal para que se abstenga de ejercer actos de dominio sobre los bienes asegurados y se le apercibirá que de no manifestar lo que a su derecho convenga, en un término de noventa días naturales siguientes al de la notificación, los bienes causarán abandono a favor del Gobierno Federal o de la Entidad federativa de que se trate, según corresponda.</p>
+					<ul>
+					<p>Artículo 232. Custodia y disposición de los bienes asegurados</p>
+					<p>Cuando los bienes que se aseguren hayan sido previamente embargados, intervenidos, secuestrados o asegurados, se notificará el nuevo aseguramiento a las autoridades que hayan ordenado dichos actos. Los bienes continuarán en custodia de quien se haya designado para ese fin, y a disposición de la autoridad judicial o del Ministerio Público para los efectos del procedimiento penal.</p>
+					<ul>
+					<p>Artículo 233. Registro de los bienes asegurados</p>
+					<p>Se hará constar en los registros públicos que correspondan, de conformidad con las disposiciones aplicables:</p>
+					<p>I. El aseguramiento de bienes muebles o inmuebles, y</p>
+					<p>II. La existencia de medidas cautelares que afecten la propiedad o posesión de bienes.</p>
+					<p>Servicio de Información Legislativa</p>
+					<ul>
+					<p>Artículo 234. Frutos de los bienes asegurados</p>
+					<p>A los frutos o rendimientos de los bienes durante el tiempo del aseguramiento, se les dará el mismo tratamiento que a los bienes asegurados, debiendo ser conservados y administrados conforme a las disposiciones aplicables.</p>
+					<ul>
+					<p>Artículo 235. Aseguramiento de bienes en delitos de querella</p>
+					<p>En los delitos de querella, no se procederá sin que ésta se haya formulado, salvo para realizar los actos urgentes de investigación o los estrictamente necesarios para impedir o interrumpir la comisión del delito.</p>
+					<ul>
+					<p>Artículo 236. Objetos de gran tamaño</p>
+					<p>Los objetos de gran tamaño, como naves, aeronaves, vehículos automotores, máquinas, grúas y otros similares, después de ser examinados, fotografiados o videograbados, podrán ser devueltos, con o sin reservas, al propietario, poseedor o al tenedor legítimo según el caso, previa demostración de la calidad invocada, siempre y cuando no hayan sido medios comisivos del delito ni se requieran para el desarrollo de la investigación.</p>
+					<ul>
+					<p>Artículo 237. Aseguramiento de objetos de gran tamaño</p>
+					<p>Los objetos mencionados en el artículo precedente, después de que sean examinados, fotografiados o videograbados, podrán ser devueltos, con o sin reservas, al propietario, poseedor o al tenedor legítimo según el caso, previa demostración de la calidad invocada, siempre y cuando no hayan sido medios comisivos del delito ni se requieran para el desarrollo de la investigación.</p>
+					<ul>
+					<p>Artículo 238. Aseguramiento de flora y fauna</p>
+					<p>Las especies de flora y fauna de reserva ecológica que se aseguren, serán provistas de los cuidados necesarios y, en su caso, se pondrán a disposición de las autoridades competentes para su resguardo y conservación, conforme a las disposiciones aplicables.</p>
+					<ul>
+					<p>Artículo 239. Requisitos para el aseguramiento de vehículos</p>
+					<p>Tratándose de delitos culposos ocasionados con motivo del tránsito de vehículos, estos se entregarán a su propietario, poseedor o tenedor legítimo, una vez que se hayan realizado las diligencias necesarias para la investigación, salvo que existan razones fundadas para su retención.</p>
+					<ul>
+					<p>Artículo 240. Aseguramiento de vehículos</p>
+					<p>En caso de que se presente alguno de los supuestos anteriores, el Ministerio Público podrá ordenar el aseguramiento y resguardo del vehículo, tomando las medidas necesarias para su conservación y evitando su deterioro.</p>
+					<ul>
+					<p>Artículo 241. Aseguramiento de armas de fuego o explosivos</p>
+					<p>Cuando se aseguren armas de fuego o explosivos, se hará del conocimiento de la Secretaría de la Defensa Nacional, para los efectos legales conducentes.</p>
+					<p>Conceptos Jurídicos</p>
+					<ul>
+					<p>Artículo 242. Aseguramiento de sustancias tóxicas o peligrosas</p>
+					<p>Las sustancias tóxicas o peligrosas que se aseguren serán puestas a disposición de las autoridades competentes para su resguardo, análisis o destrucción, conforme a las disposiciones aplicables.</p>
+					<ul>
+					<p>Artículo 243. Aseguramiento de documentos</p>
+					<p>Los documentos que se aseguren serán conservados en su estado original y, en su caso, se realizarán copias certificadas para su incorporación a la carpeta de investigación, garantizando su autenticidad e integridad.</p>
+					<ul>
+					<p>Artículo 244. Aseguramiento de información electrónica</p>
+					<p>La información electrónica que se asegure será resguardada en medios que garanticen su integridad y, en su caso, se realizarán copias de seguridad para su análisis, conforme a las disposiciones aplicables.</p>
+					<ul>
+					<p>Artículo 245. Aseguramiento de correspondencia</p>
+					<p>La correspondencia que se asegure será abierta y examinada únicamente por orden judicial, garantizando la confidencialidad y los derechos de las personas involucradas.</p>
+					<ul>
+					<p>Artículo 246. Aseguramiento de bienes culturales</p>
+					<p>Los bienes culturales que se aseguren serán puestos a disposición de las autoridades competentes para su resguardo y conservación, conforme a las disposiciones aplicables.</p>
+					<ul>
+					<p>Artículo 247. Aseguramiento de bienes en delitos fiscales</p>
+					<p>En los delitos fiscales, el aseguramiento de bienes se realizará conforme a las disposiciones aplicables en la materia, garantizando los derechos de los contribuyentes.</p>
+					<p>I. Prueba Testimonial (Artículos 360 al 367)</p>
+					<ul>
+					<p>Artículo 360. Deber de testificar</p>
+					<p>Toda persona tiene la obligación de concurrir al proceso cuando sea citada y de declarar la verdad de cuanto conozca y le sea preguntado. No deberá ocultar hechos, circunstancias o cualquier otra información relevante para la solución de la controversia, salvo disposición en contrario. El testigo no estará obligado a declarar sobre hechos por los que se le pueda fincar responsabilidad penal.</p>
+					<ul>
+					<p>Artículo 361. Facultad de abstención</p>
+					<p>Podrán abstenerse de declarar el tutor, curador, pupilo, cónyuge, concubina o concubinario, conviviente del imputado, la persona que tenga con él una relación de parentesco por consanguinidad o afinidad hasta el cuarto grado, así como quienes estén ligados por vínculos de confianza, afecto o interés que, a juicio del órgano jurisdiccional, justifiquen la abstención.</p>
+					<ul>
+					<p>Artículo 362. Inadmisibilidad de testimonios</p>
+					<p>Es inadmisible el testimonio de quien haya sido coimputado en el mismo proceso, salvo que haya sido separado del mismo y su declaración sea ofrecida por la defensa.</p>
+					<ul>
+					<p>Artículo 363. Citación de testigos</p>
+					<p>Los testigos serán citados para su examinación. En casos de urgencia, podrán ser citados por cualquier medio que garantice la recepción de la citación, de lo cual se deberá dejar constancia. El testigo podrá presentarse a declarar sin previa cita.</p>
+					<ul>
+					<p>Artículo 364. Sanciones por incomparecencia</p>
+					<p>Se impondrá de seis meses a tres años de prisión y de veinticinco a cien días multa al particular que, citado legalmente como testigo, no comparezca sin justa causa.</p>
+					<ul>
+					<p>Artículo 365. Protección de testigos</p>
+					<p>El órgano jurisdiccional podrá ordenar medidas especiales destinadas a proteger la integridad física y psicológica del testigo y sus familiares, cuando exista riesgo fundado.</p>
+					<ul>
+					<p>Artículo 366. Testimonios especiales</p>
+					<p>Cuando deba recibirse testimonio de menores de edad víctimas del delito y se tema por su afectación psicológica o emocional, el órgano jurisdiccional deberá ordenar su recepción con el auxilio de familiares y peritos especializados de manera oficiosa.</p>
+					<ul>
+					<p>Artículo 367. Protección a los testigos</p>
+					<p>El órgano jurisdiccional, por un tiempo razonable, podrá ordenar medidas especiales destinadas a proteger la integridad física y psicológica del testigo y sus familiares, cuando exista riesgo fundado.</p>
+					<p>II. Prueba Pericial (Artículos 368 al 370)</p>
+					<ul>
+					<p>Artículo 368. Prueba pericial</p>
+					<p>Podrá ofrecerse la prueba pericial cuando, para el examen de personas, hechos, objetos o circunstancias relevantes para el proceso, sea necesario o conveniente poseer conocimientos especiales en alguna ciencia, arte, técnica u oficio.</p>
+					<ul>
+					<p>Artículo 369. Requisitos de los peritos</p>
+					<p>Los peritos deberán poseer título oficial en la materia relativa al punto sobre el cual dictaminarán y no tener impedimentos legales para ejercer su profesión.</p>
+					<ul>
+					<p>Artículo 370. Medidas de protección</p>
+					<p>En caso necesario, los peritos y otros terceros que deban intervenir en el procedimiento para efectos probatorios, podrán ser objeto de medidas de protección, cuando exista riesgo fundado para su integridad.</p>
+					<p>III. Disposiciones Generales del Interrogatorio y Contrainterrogatorio (Artículos 371 al 376)</p>
+					<ul>
+					<p>Artículo 371. Declarantes en la audiencia de juicio</p>
+					<p>Antes de declarar, los testigos no podrán comunicarse entre sí, ni ver, oír o ser informados de lo que ocurra en la audiencia.</p>
+					<ul>
+					<p>Artículo 372. Desarrollo del interrogatorio</p>
+					<p>Otorgada la protesta y realizada su identificación, el juzgador que presida la audiencia de juicio concederá la palabra a la parte que ofreció al testigo para que proceda a su interrogatorio.</p>
+					<ul>
+					<p>Artículo 373. Reglas para formular preguntas en juicio</p>
+					<p>Toda pregunta deberá formularse de manera oral y versará sobre un hecho específico. En ningún caso se permitirán preguntas ambiguas, conclusivas, impertinentes, irrelevantes o argumentativas.</p>
+					<ul>
+					<p>Artículo 374. Objeciones</p>
+					<p>Las partes podrán formular objeciones a las preguntas que consideren improcedentes. El juez resolverá de inmediato sobre su procedencia.</p>
+					<ul>
+					<p>Artículo 375. Contrainterrogatorio</p>
+					<p>La parte contraria podrá interrogar al testigo sobre los mismos hechos objeto del interrogatorio principal y sobre otros relacionados con su credibilidad.</p>
+					<ul>
+					<p>Artículo 376. Intervención del juez</p>
+					<p>El juez podrá formular preguntas para aclarar aspectos oscuros o contradictorios de las declaraciones, sin asumir el papel de las partes.</p>
+					<p>IV. Declaración del Acusado (Artículos 377 al 379)</p>
+					<ul>
+					<p>Artículo 377. Derecho a declarar</p>
+					<p>El acusado podrá declarar en cualquier momento del proceso, sin que ello implique confesión ni perjuicio.</p>
+					<ul>
+					<p>Artículo 378. Asistencia de defensa</p>
+					<p>La declaración del acusado se recibirá en presencia de su defensor.</p>
+					<ul>
+					<p>Artículo 379. Valor probatorio</p>
+					<p>La declaración del acusado se valorará en conjunto con las demás pruebas del proceso.</p>
+					<p>V. Prueba Documental y Material (Artículos 380 al 387)</p>
+					<ul>
+					<p>Artículo 380. Presentación de documentos</p>
+					<p>Los documentos deberán presentarse en su forma original o en copia certificada, salvo imposibilidad justificada.</p>
+					<ul>
+					<p>Artículo 381. Incorporación de documentos</p>
+					<p>Los documentos se incorporarán al juicio mediante su lectura o exhibición, según corresponda.</p>
+					<ul>
+					<p>Artículo 382. Valor probatorio de documentos</p>
+					<p>El valor probatorio de los documentos se determinará conforme a las reglas de la sana crítica.</p>
+					<ul>
+					<p>Artículo 383. Objetos materiales</p>
+					<p>Los objetos materiales relacionados con el delito podrán ser presentados como prueba, siempre que se garantice su autenticidad e integridad.</p>
+					<ul>
+					<p>Artículo 384. Exhibición de objetos</p>
+					<p>La exhibición de objetos materiales se realizará en audiencia, permitiendo su examen por las partes.</p>
+					<ul>
+					<p>Artículo 385. Conservación de objetos</p>
+					<p>Los objetos materiales deberán conservarse en condiciones que eviten su alteración o deterioro.</p>
+					<ul>
+					<p>Artículo 386. Devolución de objetos</p>
+					<p>Los objetos podrán ser devueltos a quien acredite su legítima propiedad, salvo que deban conservarse para el proceso.</p>
+					<ul>
+					<p>Artículo 387. Destrucción de objetos</p>
+					<p>Cuando los objetos representen un peligro o no sea posible su conservación, el juez podrá ordenar su destrucción, previa documentación adecuada.</p>
+                </div>
+
+                <div class="report-section">
+                    <h3>📋 Elementos Obligatorios según CNPP</h3>
+                    <ul>
+                        <li><strong>Denuncia o Querella:</strong> Acto inicial que da conocimiento de los hechos delictivos</li>
+                        <li><strong>Entrevista de la Víctima:</strong> Declaración formal del sujeto pasivo del delito</li>
+                        <li><strong>Inspección del Lugar:</strong> Registro técnico del sitio de los hechos</li>
+                        <li><strong>Cadena de Custodia:</strong> Control y seguimiento de indicios y evidencias</li>
+                        <li><strong>Informe de Investigación:</strong> Resumen de diligencias realizadas</li>
+                    </ul>
+                </div>
+
+                <div class="report-section">
+                    <h3>📊 Criterios de Evaluación</h3>
+                    <p>La evaluación se basa en los siguientes criterios:</p>
+                    <ul>
+                        <li><strong>75-100%:</strong> Carpeta apta para judicialización</li>
+                        <li><strong>50-74%:</strong> Requiere elementos complementarios</li>
+                        <li><strong>0-49%:</strong> Deficiencias graves que impiden judicialización</li>
+                    </ul>
+                </div>
+
+                <div class="report-section">
+                    <h3>⚖️ Consecuencias Legales</h3>
+                    <p>Una carpeta de investigación mal integrada puede resultar en:</p>
+                    <ul>
+                        <li>Rechazo de la consignación por parte del juez</li>
+                        <li>Sobreseimiento del proceso penal</li>
+                        <li>Absolución del imputado por deficiencias probatorias</li>
+                        <li>Responsabilidad administrativa para el Ministerio Público</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        // Generar gráfico
+        function generateChart() {
+            const ctx = document.getElementById('cnppChart').getContext('2d');
+            
+            const labels = Object.values(requiredElements).map(el => el.name);
+            const data = Object.entries(requiredElements).map(([key, el]) => {
+                const result = analysisResults.elements[key];
+                return result.found ? result.confidence : 0;
+            });
+            
+            const colors = data.map(value => {
+                if (value >= 80) return '#28a745';
+                if (value >= 50) return '#ffc107';
+                if (value > 0) return '#fd7e14';
+                return '#dc3545';
+            });
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Nivel de Cumplimiento (%)',
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Cumplimiento: ' + context.parsed.y + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Obtener nivel de puntuación
+        function getScoreLevel(score) {
+            if (score >= 75) return 'ALTO - Apto para judicialización';
+            if (score >= 50) return 'MEDIO - Requiere complementos';
+            return 'BAJO - Deficiencias graves';
+        }
+
+        // Funciones de exportación
+        function exportToJSON() {
+            const data = {
+                metadata: {
+                    generatedAt: new Date().toISOString(),
+                    totalDocuments: analysisResults.totalDocuments,
+                    totalWords: analysisResults.totalWords
+                },
+                score: analysisResults.score,
+                elements: analysisResults.elements,
+                analysis: analysisResults.analysis,
+                recommendations: analysisResults.recommendations,
+                documents: processedDocuments.map(doc => ({
+                    name: doc.name,
+                    type: doc.type,
+                    wordCount: doc.wordCount,
+                    status: doc.status
+                }))
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            downloadFile(blob, 'analisis-carpeta-investigacion.json');
+        }
+
+        function exportToHTML() {
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Informe de Análisis - Carpeta de Investigación</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        .header { text-align: center; margin-bottom: 30px; }
+                        .score { font-size: 2em; font-weight: bold; color: ${analysisResults.score >= 75 ? '#28a745' : analysisResults.score >= 50 ? '#ffc107' : '#dc3545'}; }
+                        .section { margin: 20px 0; padding: 15px; border-left: 4px solid #007bff; }
+                        .element { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+                        .found { background-color: #d4edda; }
+                        .missing { background-color: #f8d7da; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Informe de Análisis - Carpeta de Investigación</h1>
+                        <div class="score">${analysisResults.score}%</div>
+                        <p>Generado el ${new Date().toLocaleDateString('es-MX')}</p>
+                    </div>
+                    
+                    <div class="section">
+                        <h2>Resumen Ejecutivo</h2>
+                        <p>Documentos analizados: ${analysisResults.totalDocuments}</p>
+                        <p>Total de palabras: ${analysisResults.totalWords.toLocaleString()}</p>
+                        <p>Nivel de cumplimiento: ${getScoreLevel(analysisResults.score)}</p>
+                    </div>
+                    
+                    <div class="section">
+                        <h2>Elementos Analizados</h2>
+                        ${Object.entries(requiredElements).map(([key, element]) => {
+                            const result = analysisResults.elements[key];
+                            return `
+                                <div class="element ${result.found ? 'found' : 'missing'}">
+                                    <h3>${result.found ? '✅' : '❌'} ${element.name}</h3>
+                                    <p>${element.description}</p>
+                                    <p><strong>Estado:</strong> ${result.found ? `Encontrado (${result.confidence}%)` : 'No encontrado'}</p>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <div class="section">
+                        <h2>Recomendaciones</h2>
+                        <ul>
+                            ${analysisResults.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            downloadFile(blob, 'informe-carpeta-investigacion.html');
+        }
+
+        async function exportToPDF() {
+            try {
+                const { PDFDocument, rgb, StandardFonts } = PDFLib;
+                const pdfDoc = await PDFDocument.create();
+                const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+                const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+                
+                const page = pdfDoc.addPage([612, 792]); // Tamaño carta
+                const { width, height } = page.getSize();
+                
+                let yPosition = height - 50;
+                
+                // Título
+                page.drawText('INFORME DE ANÁLISIS', {
+                    x: 50,
+                    y: yPosition,
+                    size: 20,
+                    font: helveticaBold,
+                    color: rgb(0, 0, 0)
+                });
+                
+                yPosition -= 30;
+                page.drawText('Carpeta de Investigación - CNPP Art. 131', {
+                    x: 50,
+                    y: yPosition,
+                    size: 14,
+                    font: helveticaFont,
+                    color: rgb(0.5, 0.5, 0.5)
+                });
+                
+                yPosition -= 40;
+                
+                // Puntuación
+                page.drawText(`PUNTUACIÓN: ${analysisResults.score}%`, {
+                    x: 50,
+                    y: yPosition,
+                    size: 16,
+                    font: helveticaBold,
+                    color: rgb(0, 0.5, 1)
+                });
+                
+                yPosition -= 30;
+                page.drawText(`Nivel: ${getScoreLevel(analysisResults.score)}`, {
+                    x: 50,
+                    y: yPosition,
+                    size: 12,
+                    font: helveticaFont
+                });
+                
+                yPosition -= 40;
+                
+                // Resumen
+                page.drawText('RESUMEN EJECUTIVO', {
+                    x: 50,
+                    y: yPosition,
+                    size: 14,
+                    font: helveticaBold
+                });
+                
+                yPosition -= 20;
+                const summaryLines = [
+                    `Documentos analizados: ${analysisResults.totalDocuments}`,
+                    `Total de palabras: ${analysisResults.totalWords.toLocaleString()}`,
+                    `Elementos encontrados: ${analysisResults.foundElements.length}/10`,
+                    `Elementos faltantes críticos: ${analysisResults.missingElements.length}`
+                ];
+                
+                summaryLines.forEach(line => {
+                    page.drawText(line, {
+                        x: 50,
+                        y: yPosition,
+                        size: 10,
+                        font: helveticaFont
+                    });
+                    yPosition -= 15;
+                });
+                
+                // Generar PDF
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                downloadFile(blob, 'informe-carpeta-investigacion.pdf');
+                
+            } catch (error) {
+                console.error('Error generando PDF:', error);
+                alert('Error al generar PDF: ' + error.message);
+            }
+        }
+
+        function exportExecutiveSummaryToPDF() {
+            // Versión simplificada del PDF solo con resumen ejecutivo
+            exportToPDF();
+        }
+
+        function printExecutiveSummary() {
+            const printContent = `
+                <div style="text-align: center; font-family: Arial, sans-serif;">
+                    <h1>Resumen Ejecutivo</h1>
+                    <h2>Carpeta de Investigación</h2>
+                    <div style="font-size: 3em; color: ${analysisResults.score >= 75 ? '#28a745' : analysisResults.score >= 50 ? '#ffc107' : '#dc3545'}; margin: 20px 0;">
+                        ${analysisResults.score}%
+                    </div>
+                    <h3>${getScoreLevel(analysisResults.score)}</h3>
+                    <p>Generado el ${new Date().toLocaleDateString('es-MX')}</p>
+                    
+                    <div style="text-align: left; margin: 30px 0;">
+                        <h3>Resumen:</h3>
+                        <p>Documentos analizados: ${analysisResults.totalDocuments}</p>
+                        <p>Total de palabras: ${analysisResults.totalWords.toLocaleString()}</p>
+                        <p>Elementos encontrados: ${analysisResults.foundElements.length}/10</p>
+                        
+                        <h3>Recomendaciones:</h3>
+                        <ul>
+                            ${analysisResults.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // Función auxiliar para descargar archivos
+        function downloadFile(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Agregar CDN de PDF.js si no está disponible
+        if (typeof pdfjsLib === 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+            document.head.appendChild(script);
+        }
+    </script>
+</body>
+</html>
