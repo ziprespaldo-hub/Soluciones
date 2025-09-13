@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSINT Bookmarks Manager | Uli Azua</title> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #1a1e23;
+            --bg-secondary: #252a33;
+            --accent-primary: #00b894;
+            --accent-secondary: #0984e3;
+            --text-primary: #ecf0f1;
+            --text-secondary: #95a5a6;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        header {
+            background-color: var(--bg-secondary);
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 2rem;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .logo-icon {
+            color: var(--accent-primary);
+        }
+        
+        .logo-text span {
+            color: var(--accent-primary);
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+        
+        nav a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-weight: 500;
+        }
+        
+        nav a:hover {
+            color: var(--accent-primary);
+        }
+        
+        main {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+        
+        .search-panel {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+        
+        .panel-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--accent-primary);
+            border-bottom: 1px solid var(--accent-primary);
+            padding-bottom: 0.5rem;
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: none;
+            border-radius: 4px;
+            background-color: #333a44;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+        
+        .search-box input:focus {
+            outline: 2px solid var(--accent-primary);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+        
+        .filter-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .filter-title {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+        
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .tag {
+            background-color: #2d3540;
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .tag:hover {
+            background-color: var(--accent-secondary);
+        }
+        
+        .tag.active {
+            background-color: var(--accent-primary);
+        }
+        
+        .bookmarks-section {
+            margin-top: 2rem;
+        }
+        
+        .import-area {
+            border: 2px dashed var(--text-secondary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .import-area:hover {
+            border-color: var(--accent-primary);
+        }
+        
+        .import-area p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        
+        .import-btn {
+            background-color: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .import-btn:hover {
+            background-color: #00a383;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .content-area {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 1.5rem;
+        }
+        
+        .result-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+        }
+        
+        .stats-info {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .view-options {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .view-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 4px;
+        }
+        
+        .view-btn.active {
+            background-color: #333a44;
+            color: var(--accent-primary);
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .bookmark-card {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .bookmark-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-image {
+            height: 180px;
+            background-color: #333a44;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+        
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .card-content {
+            padding: 1rem;
+        }
+        
+        .card-title {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .card-tag {
+            background-color: #333a44;
+            color: var(--text-secondary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+        }
+        
+        .card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+        
+        .action-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            color: var(--accent-primary);
+            background-color: #333a44;
+        }
+        
+        .bookmark-list {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .bookmark-list h3 {
+            margin-bottom: 1rem;
+            color: var(--accent-primary);
+            border-bottom: 1px solid var(--accent-primary);
+            padding-bottom: 0.5rem;
+        }
+        
+        .bookmark-links {
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .bookmark-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #333a44;
+            transition: background-color 0.2s;
+        }
+        
+        .bookmark-item:hover {
+            background-color: #333a44;
+        }
+        
+        .bookmark-item a {
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .bookmark-item a:hover {
+            color: var(--accent-primary);
+        }
+        
+        .folder-icon, .link-icon {
+            color: var(--accent-secondary);
+            flex-shrink: 0;
+        }
+        
+        .folder {
+            font-weight: bold;
+        }
+        
+        .nested-bookmarks {
+            padding-left: 1.5rem;
+            list-style: none;
+        }
+        
+        .no-bookmarks {
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        .tab-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid #333a44;
+        }
+        
+        .tab {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+        
+        .tab-content {
+            padding-top: 1rem;
+        }
+        
+        .tab-panel {
+            display: none;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        /* Lista en vista de lista */
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .list-item {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            gap: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .list-image {
+            width: 120px;
+            height: 90px;
+            background-color: #333a44;
+            border-radius: 6px;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+        
+        .list-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .list-content {
+            flex: 1;
+        }
+        
+        .list-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Visualizador de enlaces */
+        .preview-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .preview-content {
+            background-color: var(--bg-secondary);
+            width: 90%;
+            height: 90%;
+            border-radius: 8px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .preview-header {
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333a44;
+        }
+        
+        .preview-title {
+            font-size: 1.2rem;
+            color: var(--accent-primary);
+        }
+        
+        .preview-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .preview-close:hover {
+            color: var(--danger);
+        }
+        
+        .preview-iframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background-color: white;
+        }
+        
+        .preview-info {
+            padding: 1rem;
+            border-top: 1px solid #333a44;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .preview-meta {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .preview-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .status-message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .status-success {
+            background-color: rgba(39, 174, 96, 0.2);
+            border: 1px solid #27ae60;
+        }
+        
+        .status-error {
+            background-color: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+        }
+        
+        /* Sección de estadísticas y análisis */
+        .stats-section {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .stat-card {
+            background-color: #333a44;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Para el modal de importación */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333a44;
+        }
+        
+        .modal-title {
+            font-size: 1.2rem;
+            color: var(--accent-primary);
+        }
+        
+        .modal-body {
+            padding: 1rem;
+        }
+        
+        .modal-footer {
+            padding: 1rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            border-top: 1px solid #333a44;
+        }
+        
+        .modal-close {
+            background-color: #333a44;
+            color: var(--text-secondary);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        /* Categorías expandibles */
+        .category-item {
+            background-color: #333a44;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        
+        .category-header {
+            padding: 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .category-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .category-icon {
+            color: var(--accent-primary);
+        }
+        
+        .category-toggle {
+            color: var(--text-secondary);
+            transition: transform 0.3s;
+        }
+        
+        .category-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .category-expanded .category-content {
+            max-height: 1000px;
+        }
+        
+        .category-expanded .category-toggle {
+            transform: rotate(180deg);
+        }
+        
+        /* Tabla de enlaces */
+        .links-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .links-table th, .links-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #333a44;
+        }
+        
+        .links-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .links-table tbody tr {
+            transition: background-color 0.2s;
+        }
+        
+        .links-table tbody tr:hover {
+            background-color: #333a44;
+        }
+        
+        .table-link {
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        
+        .table-link:hover {
+            color: var(--accent-primary);
+        }
+        
+        @media (max-width: 768px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            nav ul {
+                justify-content: center;
+            }
+            
+            .list-item {
+                flex-direction: column;
+            }
+            
+            .list-image {
+                width: 100%;
+                height: 160px;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="logo-text">
+                        <span>OSINT</span> Bookmarks | Uli Azua
+                    </div>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#" class="active"><i class="fas fa-home"></i> Inicio</a></li>
+                        <li><a href="#"><i class="fas fa-folder"></i> Categorías</a></li>
+                        <li><a href="#"><i class="fas fa-chart-bar"></i> Estadísticas</a></li>
+                        <li><a href="#"><i class="fas fa-cog"></i> Configuración</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            <aside class="search-panel">
+                <h3 class="panel-title">Filtros</h3>
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Buscar enlaces...">
+                </div>
+
+                <div class="filter-group">
+                    <h4 class="filter-title">Categorías</h4>
+                    <div id="categories-filter" class="tag-cloud">
+                        <!-- Las categorías se cargarán dinámicamente -->
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h4 class="filter-title">Etiquetas</h4>
+                    <div id="tags-filter" class="tag-cloud">
+                        <span class="tag">OSINT</span>
+                        <span class="tag">Social Media</span>
+                        <span class="tag">Persona</span>
+                        <span class="tag">Geolocalización</span>
+                        <span class="tag">Imágenes</span>
+                    </div>
+                </div>
+
+                <div class="bookmarks-section">
+                    <div class="import-area" id="import-area">
+                        <p><i class="fas fa-file-import fa-2x"></i></p>
+                        <p>Arrastra un archivo de marcadores HTML o haz clic para seleccionar</p>
+                        <input type="file" id="fileInput" accept=".html">
+                        <button class="import-btn" id="import-btn">Importar marcadores</button>
+                    </div>
+                    <div id="status-message"></div>
+                </div>
+            </aside>
+
+            <div class="content-area">
+                <div class="tab-container">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="links">Enlaces</div>
+                        <div class="tab" data-tab="categories">Categorías</div>
+                        <div class="tab" data-tab="stats">Estadísticas</div>
+                        <div class="tab" data-tab="preview">Visualizador</div>
+                    </div>
+                    <div class="tab-content">
+                        <div class="tab-panel active" id="links-panel">
+                            <div class="result-stats">
+                                <div class="stats-info">
+                                    <span id="total-links">0</span> enlaces encontrados
+                                </div>
+                                <div class="view-options">
+                                    <button class="view-btn active" data-view="grid"><i class="fas fa-th-large"></i></button>
+                                    <button class="view-btn" data-view="list"><i class="fas fa-list"></i></button>
+                                    <button class="view-btn" data-view="table"><i class="fas fa-table"></i></button>
+                                </div>
+                            </div>
+                            <div id="results-container" class="results-grid">
+                                <p class="no-bookmarks">Importa tus marcadores para visualizarlos aquí</p>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-panel" id="categories-panel">
+                            <div id="categories-container">
+                                <p class="no-bookmarks">Importa tus marcadores para ver las categorías disponibles</p>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-panel" id="stats-panel">
+                            <div class="stats-section">
+                                <h3 class="panel-title">Resumen de marcadores</h3>
+                                <div class="stats-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="total-bookmarks">0</div>
+                                        <div class="stat-label">Enlaces</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="total-categories">0</div>
+                                        <div class="stat-label">Categorías</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="total-domains">0</div>
+                                        <div class="stat-label">Dominios</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="last-import">-</div>
+                                        <div class="stat-label">Última importación</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bookmark-list">
+                                <h3>Dominios más comunes</h3>
+                                <div id="top-domains">
+                                    <p class="no-bookmarks">No hay datos disponibles</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-panel" id="preview-panel">
+                            <div class="bookmark-list">
+                                <h3>Selecciona un enlace para previsualizar</h3>
+                                <p>Haz clic en cualquier enlace de la sección de resultados para visualizar su contenido aquí.</p>
+                            </div>
+                            <div id="iframe-container" style="height: 600px; background-color: #fff; border-radius: 8px; overflow: hidden; display: none;">
+                                <iframe id="preview-iframe" style="width: 100%; height: 100%; border: none;"></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal de previsualización -->
+    <div class="preview-container" id="preview-modal">
+        <div class="preview-content">
+            <div class="preview-header">
+                <div class="preview-title" id="preview-title">Vista previa</div>
+                <button class="preview-close" id="preview-close">&times;</button>
+            </div>
+            <iframe class="preview-iframe" id="modal-iframe" sandbox="allow-same-origin allow-scripts"></iframe>
+            <div class="preview-info">
+                <div class="preview-meta" id="preview-url">URL: </div>
+                <div class="preview-actions">
+                    <button class="action-btn" id="open-external" title="Abrir en nueva pestaña">
+                        <i class="fas fa-external-link-alt"></i>
+                    </button>
+                    <button class="action-btn" id="copy-url" title="Copiar URL">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script principal -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos DOM principales
+            const fileInput = document.getElementById('fileInput');
+            const importBtn = document.getElementById('import-btn');
+            const importArea = document.getElementById('import-area');
+            const statusMessage = document.getElementById('status-message');
+            const searchInput = document.getElementById('search-input');
+            const resultsContainer = document.getElementById('results-container');
+            const categoriesContainer = document.getElementById('categories-container');
+            const categoriesFilter = document.getElementById('categories-filter');
+            const totalLinksElement = document.getElementById('total-links');
+            const totalBookmarksElement = document.getElementById('total-bookmarks');
+            const totalCategoriesElement = document.getElementById('total-categories');
+            const totalDomainsElement = document.getElementById('total-domains');
+            const lastImportElement = document.getElementById('last-import');
+            const topDomainsElement = document.getElementById('top-domains');
+            const previewModal = document.getElementById('preview-modal');
+            const previewIframe = document.getElementById('modal-iframe');
+            const previewClose = document.getElementById('preview-close');
+            const previewTitle = document.getElementById('preview-title');
+const previewUrl = document.getElementById('preview-url');
+const openExternal = document.getElementById('open-external');
+const copyUrl = document.getElementById('copy-url');
+const previewPanelIframe = document.getElementById('preview-iframe');
+const iframeContainer = document.getElementById('iframe-container');
+const tabLinks = document.querySelectorAll('.tab');
+const viewButtons = document.querySelectorAll('.view-btn');
+
+// Variables globales
+let bookmarks = [];
+let categories = new Set();
+let tags = new Set();
+let domains = {};
+let currentFilter = {
+    search: '',
+    category: '',
+    tags: []
+};
+let currentView = 'grid';
+
+// Eventos de importación
+importBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', handleFileUpload);
+importArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    importArea.style.borderColor = 'var(--accent-primary)';
+});
+importArea.addEventListener('dragleave', () => {
+    importArea.style.borderColor = 'var(--text-secondary)';
+});
+importArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    importArea.style.borderColor = 'var(--text-secondary)';
+    
+    if (e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files;
+        handleFileUpload();
+    }
+});
+
+// Eventos de filtrado
+searchInput.addEventListener('input', () => {
+    currentFilter.search = searchInput.value.toLowerCase();
+    filterBookmarks();
+});
+
+// Eventos de navegación por tabs
+tabLinks.forEach(tab => {
+    tab.addEventListener('click', () => {
+        const targetTab = tab.getAttribute('data-tab');
+        
+        // Actualizar tabs activos
+        tabLinks.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Actualizar contenido activo
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.remove('active');
+        });
+        document.getElementById(`${targetTab}-panel`).classList.add('active');
+    });
+});
+
+// Eventos de vista
+viewButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const viewType = btn.getAttribute('data-view');
+        
+        // Actualizar botones activos
+        viewButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Cambiar el tipo de vista
+        currentView = viewType;
+        updateResultsView();
+    });
+});
+
+// Evento de previsualización
+previewClose.addEventListener('click', () => {
+    previewModal.style.display = 'none';
+});
+
+openExternal.addEventListener('click', () => {
+    const url = previewUrl.textContent.replace('URL: ', '');
+    window.open(url, '_blank');
+});
+
+copyUrl.addEventListener('click', () => {
+    const url = previewUrl.textContent.replace('URL: ', '');
+    navigator.clipboard.writeText(url).then(() => {
+        showStatusMessage('URL copiada al portapapeles', 'success');
+    });
+});
+
+// Funciones principales
+function handleFileUpload() {
+    const file = fileInput.files[0];
+    
+    if (!file || file.type !== 'text/html') {
+        showStatusMessage('Por favor, selecciona un archivo HTML válido', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            parseBookmarks(e.target.result);
+            showStatusMessage('Marcadores importados correctamente', 'success');
+            updateUI();
+            
+            // Actualizar estadísticas
+            lastImportElement.textContent = new Date().toLocaleDateString();
+        } catch (error) {
+            console.error(error);
+            showStatusMessage('Error al procesar el archivo de marcadores', 'error');
+        }
+    };
+    reader.onerror = function() {
+        showStatusMessage('Error al leer el archivo', 'error');
+    };
+    reader.readAsText(file);
+}
+
+function parseBookmarks(html) {
+    bookmarks = [];
+    categories = new Set();
+    tags = new Set();
+    domains = {};
+    
+    // Crear un parser temporal
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    // Obtener todos los enlaces
+    const links = doc.querySelectorAll('a[href]');
+    
+    // Procesar cada enlace
+    links.forEach(link => {
+        // Ignorar enlaces sin href o javascript
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('javascript:')) return;
+        
+        // Obtener la categoría desde la estructura del HTML
+        let category = '';
+        let parentFolder = link.closest('DL').previousElementSibling;
+        
+        if (parentFolder && parentFolder.tagName === 'H3') {
+            category = parentFolder.textContent.trim();
+            categories.add(category);
+        }
+        
+        // Extraer dominio
+        let domain = '';
+        try {
+            domain = new URL(href).hostname;
+            if (domains[domain]) {
+                domains[domain]++;
+            } else {
+                domains[domain] = 1;
+            }
+        } catch (e) {
+            domain = 'unknown';
+        }
+        
+        // Generar etiquetas automáticas
+        const autoTags = [];
+        
+        // Por dominio
+        if (domain.includes('facebook') || domain.includes('fb.com')) autoTags.push('Facebook');
+        if (domain.includes('twitter') || domain.includes('x.com')) autoTags.push('Twitter');
+        if (domain.includes('instagram')) autoTags.push('Instagram');
+        if (domain.includes('linkedin')) autoTags.push('LinkedIn');
+        if (domain.includes('google')) autoTags.push('Google');
+        
+        // Por categoría
+        if (category.toLowerCase().includes('osint')) autoTags.push('OSINT');
+        if (category.toLowerCase().includes('social')) autoTags.push('Social Media');
+        if (category.toLowerCase().includes('geo')) autoTags.push('Geolocalización');
+        if (category.toLowerCase().includes('image') || category.toLowerCase().includes('imagen')) autoTags.push('Imágenes');
+        
+        // Añadir etiquetas al conjunto global
+        autoTags.forEach(tag => tags.add(tag));
+        
+        // Crear objeto de marcador
+        const bookmark = {
+            title: link.textContent.trim() || 'Sin título',
+            url: href,
+            domain: domain,
+            category: category || 'Sin categoría',
+            dateAdded: link.getAttribute('add_date') ? new Date(parseInt(link.getAttribute('add_date')) * 1000) : new Date(),
+            lastModified: link.getAttribute('last_modified') ? new Date(parseInt(link.getAttribute('last_modified')) * 1000) : new Date(),
+            tags: autoTags
+        };
+        
+        bookmarks.push(bookmark);
+    });
+}
+
+function updateUI() {
+    // Actualizar contadores
+    totalLinksElement.textContent = bookmarks.length;
+    totalBookmarksElement.textContent = bookmarks.length;
+    totalCategoriesElement.textContent = categories.size;
+    totalDomainsElement.textContent = Object.keys(domains).length;
+    
+    // Actualizar filtros de categorías
+    updateCategoryFilters();
+    
+    // Actualizar filtros de etiquetas
+    updateTagFilters();
+    
+    // Filtrar y mostrar marcadores
+    filterBookmarks();
+    
+    // Actualizar panel de categorías
+    updateCategoriesPanel();
+    
+    // Actualizar estadísticas de dominios
+    updateDomainStats();
+}
+
+function updateCategoryFilters() {
+    categoriesFilter.innerHTML = '';
+    
+    // Añadir opción "Todos"
+    const allTag = document.createElement('span');
+    allTag.classList.add('tag');
+    allTag.textContent = 'Todos';
+    if (currentFilter.category === '') {
+        allTag.classList.add('active');
+    }
+    allTag.addEventListener('click', () => {
+        currentFilter.category = '';
+        updateActiveFilters();
+        filterBookmarks();
+    });
+    categoriesFilter.appendChild(allTag);
+    
+    // Añadir cada categoría
+    Array.from(categories).sort().forEach(category => {
+        const tag = document.createElement('span');
+        tag.classList.add('tag');
+        tag.textContent = category;
+        if (currentFilter.category === category) {
+            tag.classList.add('active');
+        }
+        tag.addEventListener('click', () => {
+            currentFilter.category = category;
+            updateActiveFilters();
+            filterBookmarks();
+        });
+        categoriesFilter.appendChild(tag);
+    });
+}
+
+function updateTagFilters() {
+    const tagsFilter = document.getElementById('tags-filter');
+    tagsFilter.innerHTML = '';
+    
+    // Añadir cada etiqueta
+    Array.from(tags).sort().forEach(tag => {
+        const tagElement = document.createElement('span');
+        tagElement.classList.add('tag');
+        tagElement.textContent = tag;
+        if (currentFilter.tags.includes(tag)) {
+            tagElement.classList.add('active');
+        }
+        tagElement.addEventListener('click', () => {
+            if (currentFilter.tags.includes(tag)) {
+                currentFilter.tags = currentFilter.tags.filter(t => t !== tag);
+            } else {
+                currentFilter.tags.push(tag);
+            }
+            updateActiveFilters();
+            filterBookmarks();
+        });
+        tagsFilter.appendChild(tagElement);
+    });
+}
+
+function updateActiveFilters() {
+    // Actualizar categorías activas
+    const categoryTags = categoriesFilter.querySelectorAll('.tag');
+    categoryTags.forEach(tag => {
+        if (tag.textContent === 'Todos') {
+            tag.classList.toggle('active', currentFilter.category === '');
+        } else {
+            tag.classList.toggle('active', tag.textContent === currentFilter.category);
+        }
+    });
+    
+    // Actualizar etiquetas activas
+    const tagElements = document.getElementById('tags-filter').querySelectorAll('.tag');
+    tagElements.forEach(tag => {
+        tag.classList.toggle('active', currentFilter.tags.includes(tag.textContent));
+    });
+}
+
+function filterBookmarks() {
+    const filtered = bookmarks.filter(bookmark => {
+        // Filtrar por búsqueda
+        const matchSearch = bookmark.title.toLowerCase().includes(currentFilter.search) || 
+                        bookmark.url.toLowerCase().includes(currentFilter.search) ||
+                        bookmark.domain.toLowerCase().includes(currentFilter.search);
+        
+        // Filtrar por categoría
+        const matchCategory = currentFilter.category === '' || bookmark.category === currentFilter.category;
+        
+        // Filtrar por etiquetas
+        const matchTags = currentFilter.tags.length === 0 || 
+                      currentFilter.tags.every(tag => bookmark.tags.includes(tag));
+        
+        return matchSearch && matchCategory && matchTags;
+    });
+    
+    // Actualizar contador
+    totalLinksElement.textContent = filtered.length;
+    
+    // Mostrar resultados
+    renderBookmarks(filtered);
+}
+
+function renderBookmarks(bookmarksToShow) {
+    // Cambiar la vista según el tipo seleccionado
+    switch (currentView) {
+        case 'grid':
+            renderGridView(bookmarksToShow);
+            break;
+        case 'list':
+            renderListView(bookmarksToShow);
+            break;
+        case 'table':
+            renderTableView(bookmarksToShow);
+            break;
+    }
+}
+
+function renderGridView(bookmarksToShow) {
+    resultsContainer.className = 'results-grid';
+    resultsContainer.innerHTML = '';
+    
+    if (bookmarksToShow.length === 0) {
+        resultsContainer.innerHTML = '<p class="no-bookmarks">No se encontraron marcadores con los filtros seleccionados</p>';
+        return;
+    }
+    
+    bookmarksToShow.forEach(bookmark => {
+        const card = document.createElement('div');
+        card.className = 'bookmark-card';
+        
+        const hostname = bookmark.domain;
+        const faviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
+        
+        card.innerHTML = `
+            <div class="card-image">
+                <img src="${faviconUrl}" alt="Favicon" onerror="this.src='https://via.placeholder.com/64x64?text=${hostname[0]?.toUpperCase() || 'X'}'; this.onerror=null;">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">${bookmark.title}</h3>
+                <div class="card-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-globe"></i>
+                        <span>${hostname}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-folder"></i>
+                        <span>${bookmark.category}</span>
+                    </div>
+                </div>
+                <div class="card-tags">
+                    ${bookmark.tags.map(tag => `<span class="card-tag">${tag}</span>`).join('')}
+                </div>
+                <div class="card-actions">
+                    <button class="action-btn preview-link" data-url="${bookmark.url}" title="Vista previa">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn" title="Abrir enlace" onclick="window.open('${bookmark.url}', '_blank')">
+                        <i class="fas fa-external-link-alt"></i>
+                    </button>
+                    <button class="action-btn copy-url" data-url="${bookmark.url}" title="Copiar URL">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Añadir evento de vista previa
+        const previewBtn = card.querySelector('.preview-link');
+        previewBtn.addEventListener('click', () => {
+            openPreview(bookmark.url, bookmark.title);
+        });
+        
+        // Añadir evento de copia de URL
+        const copyBtn = card.querySelector('.copy-url');
+        copyBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const url = copyBtn.getAttribute('data-url');
+            navigator.clipboard.writeText(url).then(() => {
+                showStatusMessage('URL copiada al portapapeles', 'success');
+            });
+        });
+        
+        resultsContainer.appendChild(card);
+    });
+}
+
+function renderListView(bookmarksToShow) {
+    resultsContainer.className = 'results-list';
+    resultsContainer.innerHTML = '';
+    
+    if (bookmarksToShow.length === 0) {
+        resultsContainer.innerHTML = '<p class="no-bookmarks">No se encontraron marcadores con los filtros seleccionados</p>';
+        return;
+    }
+    
+    bookmarksToShow.forEach(bookmark => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        
+        const hostname = bookmark.domain;
+        const faviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
+        
+        item.innerHTML = `
+            <div class="list-image">
+                <img src="${faviconUrl}" alt="Favicon" onerror="this.src='https://via.placeholder.com/64x64?text=${hostname[0]?.toUpperCase() || 'X'}'; this.onerror=null;">
+            </div>
+            <div class="list-content">
+                <h3 class="card-title">${bookmark.title}</h3>
+                <div class="card-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-globe"></i>
+                        <span>${hostname}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-folder"></i>
+                        <span>${bookmark.category}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>${bookmark.dateAdded.toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="card-tags">
+                    ${bookmark.tags.map(tag => `<span class="card-tag">${tag}</span>`).join('')}
+                </div>
+            </div>
+            <div class="list-actions">
+                <button class="action-btn preview-link" data-url="${bookmark.url}" title="Vista previa">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="action-btn" title="Abrir enlace" onclick="window.open('${bookmark.url}', '_blank')">
+                    <i class="fas fa-external-link-alt"></i>
+                </button>
+                <button class="action-btn copy-url" data-url="${bookmark.url}" title="Copiar URL">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        `;
+        
+        // Añadir evento de vista previa
+        const previewBtn = item.querySelector('.preview-link');
+        previewBtn.addEventListener('click', () => {
+            openPreview(bookmark.url, bookmark.title);
+        });
+        
+        // Añadir evento de copia de URL
+        const copyBtn = item.querySelector('.copy-url');
+        copyBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const url = copyBtn.getAttribute('data-url');
+            navigator.clipboard.writeText(url).then(() => {
+                showStatusMessage('URL copiada al portapapeles', 'success');
+            });
+        });
+        
+        resultsContainer.appendChild(item);
+    });
+}
+
+function renderTableView(bookmarksToShow) {
+    resultsContainer.className = '';
+    resultsContainer.innerHTML = '';
+    
+    if (bookmarksToShow.length === 0) {
+        resultsContainer.innerHTML = '<p class="no-bookmarks">No se encontraron marcadores con los filtros seleccionados</p>';
+        return;
+    }
+    
+    const table = document.createElement('table');
+    table.className = 'links-table';
+    
+    // Cabecera de la tabla
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+        <tr>
+            <th>Título</th>
+            <th>Dominio</th>
+            <th>Categoría</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+        </tr>
+    `;
+    table.appendChild(thead);
+    
+    // Cuerpo de la tabla
+    const tbody = document.createElement('tbody');
+    
+    bookmarksToShow.forEach(bookmark => {
+        const tr = document.createElement('tr');
+        
+        tr.innerHTML = `
+            <td><a href="${bookmark.url}" class="table-link" target="_blank">${bookmark.title}</a></td>
+            <td>${bookmark.domain}</td>
+            <td>${bookmark.category}</td>
+            <td>${bookmark.dateAdded.toLocaleDateString()}</td>
+            <td>
+                <button class="action-btn preview-link" data-url="${bookmark.url}" title="Vista previa">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="action-btn copy-url" data-url="${bookmark.url}" title="Copiar URL">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </td>
+        `;
+        
+        // Añadir evento de vista previa
+        const previewBtn = tr.querySelector('.preview-link');
+        previewBtn.addEventListener('click', () => {
+            openPreview(bookmark.url, bookmark.title);
+        });
+        
+        // Añadir evento de copia de URL
+        const copyBtn = tr.querySelector('.copy-url');
+        copyBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const url = copyBtn.getAttribute('data-url');
+            navigator.clipboard.writeText(url).then(() => {
+                showStatusMessage('URL copiada al portapapeles', 'success');
+            });
+        });
+        
+        tbody.appendChild(tr);
+    });
+    
+    table.appendChild(tbody);
+    resultsContainer.appendChild(table);
+}
+
+function updateCategoriesPanel() {
+    categoriesContainer.innerHTML = '';
+    
+    if (categories.size === 0) {
+        categoriesContainer.innerHTML = '<p class="no-bookmarks">Importa tus marcadores para ver las categorías disponibles</p>';
+        return;
+    }
+    
+    // Organizar marcadores por categorías
+    const categorizedBookmarks = {};
+    bookmarks.forEach(bookmark => {
+        const category = bookmark.category || 'Sin categoría';
+        
+        if (!categorizedBookmarks[category]) {
+            categorizedBookmarks[category] = [];
+        }
+        
+        categorizedBookmarks[category].push(bookmark);
+    });
+    
+    // Crear elementos de categoría expandibles
+    Object.keys(categorizedBookmarks).sort().forEach(category => {
+        const categoryItem = document.createElement('div');
+        categoryItem.className = 'category-item';
+        
+        const bookmarksList = categorizedBookmarks[category];
+        
+        categoryItem.innerHTML = `
+            <div class="category-header">
+                <div class="category-title">
+                    <i class="fas fa-folder category-icon"></i>
+                    <span>${category}</span>
+                </div>
+                <div class="category-info">
+                    <span>${bookmarksList.length} enlaces</span>
+                    <i class="fas fa-chevron-down category-toggle"></i>
+                </div>
+            </div>
+            <div class="category-content">
+                <ul class="bookmark-links">
+                    ${bookmarksList.map(bookmark => `
+                        <li class="bookmark-item">
+                            <a href="${bookmark.url}" target="_blank">
+                                <i class="fas fa-link link-icon"></i>
+                                <span>${bookmark.title}</span>
+                            </a>
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+        `;
+        
+        // Añadir evento para expandir/contraer
+        const categoryHeader = categoryItem.querySelector('.category-header');
+        categoryHeader.addEventListener('click', () => {
+            categoryItem.classList.toggle('category-expanded');
+        });
+        
+        categoriesContainer.appendChild(categoryItem);
+    });
+}
+
+function updateDomainStats() {
+    if (Object.keys(domains).length === 0) {
+        topDomainsElement.innerHTML = '<p class="no-bookmarks">No hay datos disponibles</p>';
+        return;
+    }
+    
+    // Ordenar dominios por frecuencia
+    const sortedDomains = Object.entries(domains)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10); // Top 10
+    
+    let domainListHTML = '<ul class="bookmark-links">';
+    
+    sortedDomains.forEach(([domain, count]) => {
+        domainListHTML += `
+            <li class="bookmark-item">
+                <a href="#" onclick="filterByDomain('${domain}'); return false;">
+                    <i class="fas fa-globe link-icon"></i>
+                    <span>${domain}</span>
+                    <span class="badge">${count}</span>
+                </a>
+            </li>
+        `;
+    });
+    
+    domainListHTML += '</ul>';
+    topDomainsElement.innerHTML = domainListHTML;
+}
+
+function filterByDomain(domain) {
+    // Establecer el filtro de búsqueda
+    searchInput.value = domain;
+    currentFilter.search = domain.toLowerCase();
+    
+    // Cambiar a la pestaña de enlaces
+    document.querySelector('.tab[data-tab="links"]').click();
+    
+    // Aplicar filtro
+    filterBookmarks();
+}
+
+function updateResultsView() {
+    // Re-renderizar con la misma lista de elementos
+    const filtered = bookmarks.filter(bookmark => {
+        const matchSearch = bookmark.title.toLowerCase().includes(currentFilter.search) || 
+                        bookmark.url.toLowerCase().includes(currentFilter.search) ||
+                        bookmark.domain.toLowerCase().includes(currentFilter.search);
+        
+        const matchCategory = currentFilter.category === '' || bookmark.category === currentFilter.category;
+        
+        const matchTags = currentFilter.tags.length === 0 || 
+                      currentFilter.tags.every(tag => bookmark.tags.includes(tag));
+        
+        return matchSearch && matchCategory && matchTags;
+    });
+    
+    renderBookmarks(filtered);
+}
+
+function openPreview(url, title) {
+    // Mostrar en el modal
+    previewModal.style.display = 'flex';
+    previewTitle.textContent = title;
+    previewUrl.textContent = 'URL: ' + url;
+    previewIframe.src = url;
+    
+    // Mostrar también en el panel de previsualización
+    previewPanelIframe.src = url;
+    iframeContainer.style.display = 'block';
+    
+    // Cambiar a la pestaña de previsualización
+    document.querySelector('.tab[data-tab="preview"]').click();
+}
+
+function showStatusMessage(message, type) {
+    statusMessage.textContent = message;
+    statusMessage.className = 'status-message status-' + type;
+    
+    // Limpiar mensaje después de un tiempo
+    setTimeout(() => {
+        statusMessage.textContent = '';
+        statusMessage.className = '';
+    }, 3000);
+}
+
+// Inicialización
+updateUI();

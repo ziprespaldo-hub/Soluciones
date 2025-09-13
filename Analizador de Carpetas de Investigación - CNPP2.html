@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador de Carpetas de Investigación - CNPP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <style>
+        /* Add your custom styles here */
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4 pt-6 md:p-12">
+        <div class="header bg-blue-500 text-white p-4 text-center">
+            <h1 class="text-3xl mb-4">Analizador de Carpetas de Investigación</h1>
+            <p class="text-lg">Sistema de Evaluación de Integración según CNPP - Artículo 131</p>
+        </div>
+        <div class="main-content p-4 mt-4">
+            <!-- Sección de Carga de Archivos -->
+            <div class="upload-section bg-gray-100 p-4 mb-4 border border-gray-300 rounded">
+                <h2 class="text-lg font-bold mb-2">Cargar Documentos de la Carpeta de Investigación</h2>
+                <p class="text-gray-600 mb-4">Soporta archivos PDF, DOC, DOCX y TXT</p>
+                <input type="file" id="fileInput" class="file-input" multiple accept=".pdf,.doc,.docx,.txt">
+                <button class="upload-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="document.getElementById('fileInput').click()">
+                    Seleccionar Archivos
+                </button>
+                <div class="file-list" id="fileList"></div>
+            </div>
+            <button class="analyze-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" id="analyzeBtn" onclick="startAnalysis()" disabled>
+                Analizar Carpeta de Investigación
+            </button>
+            <div class="progress-bar bg-gray-200 h-2 rounded" id="progressBar">
+                <div class="progress-fill bg-blue-500" id="progressFill"></div>
+            </div>
+            <!-- Sección de Resultados -->
+            <div class="results-section" id="resultsSection">
+                <div class="tabs flex justify-center mb-4">
+                    <button class="tab active bg-blue-500 text-white font-bold py-2 px-4 rounded" onclick="showTab('summary')">Resumen Ejecutivo</button>
+                    <button class="tab bg-gray-200 hover:bg-gray-300 text-gray-600 font-bold py-2 px-4 rounded" onclick="showTab('checklist')">Lista de Verificación</button>
+                    <button class="tab bg-gray-200 hover:bg-gray-300 text-gray-600 font-bold py-2 px-4 rounded" onclick="showTab('detailed')">Informe Detallado</button>
+                    <button class="tab bg-gray-200 hover:bg-gray-300 text-gray-600 font-bold py-2 px-4 rounded" onclick="showTab('legal')">Marco Legal</button>
+                </div>
+                <!-- Resumen Ejecutivo -->
+                <div class="tab-content active" id="summary">
+                    <div class="analysis-summary bg-white p-4 mb-4 border border-gray-300 rounded">
+                        <div class="score-display flex justify-center mb-4">
+                            <div class="score-circle bg-blue-500 text-white font-bold text-3xl rounded-full w-32 h-32 flex justify-center items-center" id="scoreCircle">
+                                <span id="scoreText">0%</span>
+                            </div>
+                            <h3 class="text-lg font-bold mb-2">Nivel de Judicialización</h3>
+                            <p id="scoreDescription" class="text-gray-600">Evaluando...</p>
+                        </div>
+                        <div class="report-section mb-4">
+                            <h3 class="text-lg font-bold mb-2">Análisis General</h3>
+                            <div id="generalAnalysis"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Lista de Verificación -->
+                <div class="tab-content" id="checklist">
+                    <h2 class="text-lg font-bold mb-2">Elementos de la Carpeta de Investigación</h2>
+                    <div class="elements-checklist" id="elementsChecklist"></div>
+                </div>
+                <!-- Informe Detallado -->
+                <div class="tab-content" id="detailed">
+                    <div class="detailed-report" id="detailedReport"></div>
+                </div>
+                <!-- Marco Legal -->
+                <div class="tab-content" id="legal">
+                    <div class="detailed-report" id="legalFramework"></div>
+                </div>
+                <!-- Controles de Exportación -->
+                <div class="export-controls bg-gray-100 p-4 mb-4 border border-gray-300 rounded">
+                    <h3 class="text-lg font-bold mb-2">Exportar Informe</h3>
+                    <button class="export-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="exportToHTML()">Exportar HTML</button>
+                    <button class="export-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="exportToPDF()">Generar PDF</button>
+                    <button class="export-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="printReport()">Imprimir</button>
+                    <button class="export-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="exportToJSON()">Exportar JSON</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Your JavaScript code here
+    </script>
+</body>
+</html>

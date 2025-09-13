@@ -1,0 +1,431 @@
+<div class="form-col">
+                            <div class="form-group">
+                                <label for="tool7">ExifTool:</label>
+                                <input type="text" id="tool7" class="form-control" value="análisis de metadatos imágenes">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="tool8">PimEyes/Tineye:</label>
+                                <input type="text" id="tool8" class="form-control" value="búsqueda inversa de imágenes">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="tool9">Social Mapper:</label>
+                                <input type="text" id="tool9" class="form-control" value="análisis en redes sociales">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="tool10">Herramienta adicional 1:</label>
+                                <input type="text" id="tool10" class="form-control" value="Nombre software">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="tool11">Herramienta adicional 2:</label>
+                                <input type="text" id="tool11" class="form-control" value="Nombre software">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="tool12">Herramienta adicional 3:</label>
+                                <input type="text" id="tool12" class="form-control" value="Nombre software">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="tool13">Herramienta adicional 4:</label>
+                                <input type="text" id="tool13" class="form-control" value="Nombre software">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección 6: Resultados de la Investigación -->
+        <div class="section" id="section6">
+            <div class="section-header" onclick="toggleSection('section6')">
+                <h2>6. Resultados de la Investigación</h2>
+                <span class="toggle-icon">▲</span>
+            </div>
+            <div class="section-content">
+                <h3>Identificación del Número</h3>
+                <div class="form-group">
+                    <label for="analyzed_number">Número Analizado:</label>
+                    <input type="text" id="analyzed_number" class="form-control" value="+52 3221485712">
+                </div>
+
+                <div class="form-group">
+                    <label for="number_identification">Identificación del Número:</label>
+                    <select id="number_identification" class="form-control">
+                        <option value="Positivo">Positivo</option>
+                        <option value="Negativo">Negativo</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone_company">Compañía Telefónica:</label>
+                    <input type="text" id="phone_company" class="form-control" value="Nombre de la compañía">
+                </div>
+
+                <div class="form-group">
+                    <label for="service_type">Tipo de Servicio:</label>
+                    <select id="service_type" class="form-control">
+                        <option value="Móvil">Móvil</option>
+                        <option value="Fijo">Fijo</option>
+                        <option value="VoIP">VoIP</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">País y Ubicación Probable:</label>
+                    <input type="text" id="location" class="form-control" value="País, Ciudad">
+                </div>
+
+                <div class="form-group">
+                    <label for="approx_location">Ubicación Aproximada:</label>
+                    <input type="text" id="approx_location" class="form-control" value="Coordenadas geográficas / Dirección aproximada">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="use_start">Historial de Uso - Inicio:</label>
+                            <input type="date" id="use_start" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="use_end">Historial de Uso - Fin:</label>
+                            <input type="date" id="use_end" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="first_activity">Historial de Vida del número - Primera actividad:</label>
+                            <input type="date" id="first_activity" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="last_activity">Historial de Vida del número - Última actividad:</label>
+                            <input type="date" id="last_activity" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección 7: Análisis Visual y Diagramas -->
+        <div class="section" id="section7">
+            <div class="section-header" onclick="toggleSection('section7')">
+                <h2>7. Análisis Visual y Diagramas</h2>
+                <span class="toggle-icon">▲</span>
+            </div>
+            <div class="section-content">
+                <div class="form-group">
+                    <label for="time_flows">Flujos Temporales:</label>
+                    <textarea id="time_flows" class="form-control">Línea de tiempo detallada de interacciones del número.- [Anexo D.D.T]</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="relation_diagrams">Diagramas de Relación:</label>
+                    <textarea id="relation_diagrams" class="form-control">Mapeo de conexiones personales, sociales y comerciales.- [Anexo D.D.R]</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="event_correlation">Mapa de Correlación de Eventos:</label>
+                    <textarea id="event_correlation" class="form-control">Visualización de movimientos geográficos y actividad del número.- [Anexo D.D.R], [Anexo D.D.T]</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="diagram_upload">Cargar Diagramas:</label>
+                    <input type="file" id="diagram_upload" class="form-control" multiple>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección 8: Análisis de Riesgo Legal -->
+        <div class="section" id="section8">
+            <div class="section-header" onclick="toggleSection('section8')">
+                <h2>8. Análisis de Riesgo Legal</h2>
+                <span class="toggle-icon">▲</span>
+            </div>
+            <div class="section-content">
+                <div class="form-group">
+                    <label>El análisis de los hallazgos indica un riesgo:</label>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="risk_real">Real:</label>
+                                <select id="risk_real" class="form-control">
+                                    <option value="Sí">Sí</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="risk_moderate">Moderado:</label>
+                                <select id="risk_moderate" class="form-control">
+                                    <option value="Sí">Sí</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="risk_high">Alto:</label>
+                                <select id="risk_high" class="form-control">
+                                    <option value="Sí">Sí</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="legal_risk_factors">Factores de riesgo:</label>
+                    <textarea id="legal_risk_factors" class="form-control">Cadena de Custodia: La evidencia OSINT debe estar debidamente documentada para evitar impugnaciones.
+Autenticidad de la Fuente: La veracidad de la información obtenida de fuentes abiertas puede ser cuestionada.
+Marco Legal Internacional: Si la información obtenida involucra transacciones o comunicaciones transfronterizas, podrían aplicarse normativas de protección de datos extranjeras.</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="client_recommendation">Recomendación para el cliente:</label>
+                    <textarea id="client_recommendation" class="form-control">Incluir un análisis forense de la información para garantizar su validez.
+Presentar la evidencia con un peritaje certificado para fortalecer su admisión en juicio.</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección 9: Síntesis de Resultados y Conclusión -->
+        <div class="section" id="section9">
+            <div class="section-header" onclick="toggleSection('section9')">
+                <h2>9. Síntesis de Resultados y Conclusión</h2>
+                <span class="toggle-icon">▲</span>
+            </div>
+            <div class="section-content">
+                <div class="form-group">
+                    <label for="investigation_summary">Tras la investigación realizada, se ha identificado que:</label>
+                    <textarea id="investigation_summary" class="form-control">El número telefónico +xx xxx xxxxxxx está asociado con Persona/Entidad y mantiene relaciones activas con Números/Empresas</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="legal_implication">Posible Implicación Legal:</label>
+                    <textarea id="legal_implication" class="form-control">Se identificaron indicios de actividades sospechosas que podrían estar relacionadas con:
+
+Fraude, Extorsión</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="final_suggestions">Sugerencias Finales:</label>
+                    <textarea id="final_suggestions" class="form-control">Continuar con una vigilancia activa del número para detectar cambios en sus patrones de actividad.
+Presentar los hallazgos ante las autoridades competentes si el análisis de riesgo sugiere actividades ilícitas.</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección 10: Anexos -->
+        <div class="section" id="section10">
+            <div class="section-header" onclick="toggleSection('section10')">
+                <h2>10. Anexos</h2>
+                <span class="toggle-icon">▲</span>
+            </div>
+            <div class="section-content">
+                <div class="form-group">
+                    <label for="evidence_screenshots">Capturas de pantalla de evidencia. [Anexo C.P.E]</label>
+                    <input type="file" id="evidence_screenshots" class="form-control" multiple>
+                </div>
+
+                <div class="form-group">
+                    <label for="relation_diagram">Diagrama de relaciones. [Anexo D.D.R]</label>
+                    <input type="file" id="relation_diagram" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="time_diagram">Diagrama de tiempo. [Anexo D.D.T]</label>
+                    <input type="file" id="time_diagram" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="web_presence_diagram">Diagrama de presencia en web. [Anexo D.P.W]</label>
+                    <input type="file" id="web_presence_diagram" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="search_records">Registros de búsquedas y datos obtenidos. [Anexo R.B.D]</label>
+                    <input type="file" id="search_records" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="investigator_credentials">Credenciales de idoneidad del investigador: [Anexo C.D.I]</label>
+                    <input type="file" id="investigator_credentials" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="profiling_analysis">Análisis y perfilación de la información obtenida: [Perfilación]</label>
+                    <input type="file" id="profiling_analysis" class="form-control">
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-success" onclick="saveData()">Guardar Datos</button>
+            <button class="btn btn-warning" onclick="exportData()">Exportar Datos</button>
+        </div>
+    </div>
+
+    <script>
+        // Script para manejar la funcionalidad de la interfaz
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer la fecha actual en los campos de fecha
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            
+            // Expandir primera sección por defecto
+            document.getElementById('section1').classList.add('active');
+            
+            // Verificar si hay datos guardados
+            checkSavedData();
+        });
+
+        // Función para alternar secciones
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const isActive = section.classList.contains('active');
+            
+            if (isActive) {
+                section.classList.remove('active');
+                section.querySelector('.toggle-icon').textContent = '▲';
+            } else {
+                section.classList.add('active');
+                section.querySelector('.toggle-icon').textContent = '▼';
+            }
+        }
+
+        // Función para buscar en la web
+        function searchWeb(fieldId) {
+            const fieldValue = document.getElementById(fieldId).value;
+            if (fieldValue) {
+                const searchQuery = encodeURIComponent(fieldValue);
+                window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+            }
+        }
+
+        // Función para guardar datos
+        function saveData() {
+            const formData = {};
+            
+            // Recolectar todos los valores de input, textarea y select
+            document.querySelectorAll('input, textarea, select').forEach(element => {
+                if (element.id && element.type !== 'file') {
+                    formData[element.id] = element.value;
+                }
+            });
+            
+            // Recolectar checkboxes
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                formData[checkbox.id] = checkbox.checked;
+            });
+            
+            // Guardar en localStorage
+            localStorage.setItem('osintReportData', JSON.stringify(formData));
+            
+            // Mostrar notificación
+            showNotification('Datos guardados correctamente.');
+        }
+
+        // Función para exportar datos
+        function exportData() {
+            const formData = {};
+            
+            // Recolectar todos los valores
+            document.querySelectorAll('input, textarea, select').forEach(element => {
+                if (element.id && element.type !== 'file') {
+                    formData[element.id] = element.value;
+                }
+            });
+            
+            // Recolectar checkboxes
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                formData[checkbox.id] = checkbox.checked;
+            });
+            
+            // Crear y descargar archivo JSON
+            const dataStr = JSON.stringify(formData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `reporte_osint_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('Datos exportados correctamente.');
+        }
+
+        // Verificar si hay datos guardados
+        function checkSavedData() {
+            const savedData = localStorage.getItem('osintReportData');
+            if (savedData) {
+                document.getElementById('notification').style.display = 'block';
+            }
+        }
+
+        // Cargar datos guardados
+        function loadSavedData() {
+            const savedData = localStorage.getItem('osintReportData');
+            if (savedData) {
+                const formData = JSON.parse(savedData);
+                
+                // Aplicar valores a los campos
+                Object.keys(formData).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        if (element.type === 'checkbox') {
+                            element.checked = formData[key];
+                        } else {
+                            element.value = formData[key];
+                        }
+                    }
+                });
+                
+                document.getElementById('notification').style.display = 'none';
+                showNotification('Datos cargados correctamente.');
+            }
+        }
+
+        // Mostrar notificación temporal
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.display = 'block';
+            notification.textContent = message;
+            
+            document.querySelector('.container').insertBefore(notification, document.querySelector('.section'));
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

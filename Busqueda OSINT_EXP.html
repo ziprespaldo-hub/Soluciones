@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplicación OSINT Mejorada</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Thasadith:wght@700&display=swap');
+    body {
+      background-color: #827f77;
+      color: #d1d1c6;
+  <h2>Heading 2 (left)</h2>;
+      font-size: 1.3rem;
+      font-family: Poppins, sans-serif;
+      margin: 0;
+      padding: 2em;
+    }
+    .shadowbox {
+      max-width: 800px;
+      margin: auto;
+      border: 1px solid #ffed38;
+      box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+      padding: 2em;
+      background: linear-gradient(#607c8c, #0c3026 35%, #282d26);
+      border-radius: 10px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1em;
+    }
+    input, select {
+      background-color: #070c0f;
+      color: #d6d3d6;
+      border: 2px solid #00a3d1;
+      border-radius: 10px;
+      padding: 0.7em;
+      width: 100%;
+      margin-top: 0.5em;
+    }
+    .boton {
+      background-color: #007f99;
+      color: white;
+      font-family: orbitron, sans-serif;
+      border: none;
+      padding: 1em 1.5em;
+      border-radius: 6px;
+      margin: 1em 0.5em;
+      cursor: pointer;
+    }
+    .resultado {
+      margin-top: 2em;
+      background-color: #007aa5;
+      padding: 1.2em;
+      border-radius: 8px;
+      color: #c6d1d6;
+      text-align: left;
+    }
+    body {@apply bg-gray-100 text-gray-900;}
+    .dark-mode {@apply bg-gray-900 text-gray-100;}
+    .card {@apply bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6;}
+    .module {@apply bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 mb-6;}
+  </style>
+</head>
+<body class="p-6 md:p-10 lg:p-14 font-sans">
+  <header class="mb-10 flex justify-between items-center border-b-2 border-gray-300 pb-5">
+    <div>
+      <h1 class="text-4xl font-extrabold">Aplicación OSINT </h1>
+      <p class="text-lg text-gray-600 dark:text-gray-300">Investigación de personas de interés </p>
+    </div>
+    <button id="theme-toggle" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white py-2 px-5 rounded">Modo oscuro</button>
+  </header>
+
+  <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <section class="lg:col-span-2 space-y-6">
+      <div class="module">
+        <h2 class="text-2xl font-semibold mb-4">Búsqueda</h2>
+        <form id="search-form" class="card">
+          <label for="nombre" class="block mb-2 font-medium">Nombre completo y apellidos:</label>
+          <input type="text" id="nombre" name="nombre" class="w-full p-2 mb-4 border border-gray-300 rounded">
+          <div class="flex gap-4">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Buscar</button>
+            <button type="button" id="update-search" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Actualizar búsqueda</button>
+          </div>
+        </form>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="module card">
+          <h3 class="text-xl font-semibold mb-2">Motores de búsqueda</h3>
+          <ul id="search-engines-results"></ul>
+        </div>
+        <div class="module card">
+          <h3 class="text-xl font-semibold mb-2">Redes sociales</h3>
+          <ul id="social-media-results"></ul>
+        </div>
+        <div class="module card">
+          <h3 class="text-xl font-semibold mb-2">Imágenes y videos</h3>
+          <ul id="images-videos-results"></ul>
+        </div>
+        <div class="module card">
+          <h3 class="text-xl font-semibold mb-2">Noticias</h3>
+          <ul id="news-results"></ul>
+        </div>
+      </div>
+      <div class="module card">
+        <h2 class="text-2xl font-semibold mb-4">Resumen de búsqueda</h2>
+        <div id="search-summary" class="text-base text-gray-700 dark:text-gray-300"></div>
+      </div>
+      <div class="module card">
+        <h2 class="text-2xl font-semibold mb-4">Exportar datos</h2>
+        <div class="flex flex-wrap gap-3">
+          <button id="export-json" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Exportar JSON</button>
+          <button id="export-csv" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded">Exportar CSV</button>
+          <button id="export-html" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">Exportar HTML</button>
+        </div>
+      </div>
+    </section>
+    <aside class="lg:col-span-1 space-y-6">
+      <div class="module card">
+        <h2 class="text-2xl font-semibold mb-4">Historial de búsquedas</h2>
+        <ul id="search-history" class="list-disc pl-5 space-y-1"></ul>
+      </div>
+      <div class="module card">
+        <h2 class="text-2xl font-semibold mb-4">Comparativa</h2>
+        <div>
+          <h3 class="text-lg font-medium mb-2">Cambios en perfiles</h3>
+          <ul id="profile-changes" class="list-disc pl-5 space-y-1"></ul>
+          <button id="load-profile-changes" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Cargar cambios</button>
+        </div>
+        <div class="mt-6">
+          <h3 class="text-lg font-medium mb-2">Líneas de tiempo de actividad</h3>
+          <ul id="activity-timeline" class="list-disc pl-5 space-y-1"></ul>
+          <button id="load-activity-timeline" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Cargar líneas de tiempo</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+  });
+
+  const renderLinks = (id, links) => {
+    document.getElementById(id).innerHTML = links.map(link => `<li><a href="${link.url}" target="_blank" class="text-blue-500 hover:underline">${link.name}</a></li>`).join('');
+  };
+
+  const generateSummary = (nombre, sections) => {
+    return `Se ha realizado una búsqueda para <strong>${nombre}</strong>. Se encontraron ${sections.engines.length} fuentes generales, ${sections.social.length} redes sociales, ${sections.images.length} sitios de imágenes/videos y ${sections.news.length} fuentes de noticias.`;
+  };
+
+  const performSearch = () => {
+    const nombre = document.getElementById('nombre').value.trim();
+    if (!nombre) return;
+
+    const results = {
+      engines: [
+        { name: 'Google', url: `https://www.google.com/search?q=${nombre}` },
+        { name: 'IntelX', url: `https://intelx.io/?s=${nombre}` },
+        { name: 'Pipl', url: `https://pipl.com/search/?q=${nombre}` },
+        { name: 'Wayback Machine', url: `https://web.archive.org/web/*/${nombre}` },
+        { name: 'HaveIBeenPwned', url: `https://haveibeenpwned.com/unifiedsearch/${nombre}` }
+      ],
+      social: [
+        { name: 'Facebook', url: `https://www.facebook.com/search/top/?q=${nombre}` },
+        { name: 'Twitter', url: `https://twitter.com/search?q=${nombre}` },
+        { name: 'LinkedIn', url: `https://www.linkedin.com/search/results/people/?keywords=${nombre}` },
+        { name: 'NameCheckr', url: `https://namecheckr.com/?search=${nombre}` }
+      ],
+      images: [
+        { name: 'Google Imágenes', url: `https://www.google.com/search?q=${nombre}&tbm=isch` },
+        { name: 'YouTube', url: `https://www.youtube.com/results?search_query=${nombre}` }
+      ],
+      news: [
+        { name: 'Google News', url: `https://news.google.com/search?q=${nombre}` }
+      ]
+    };
+
+    renderLinks('search-engines-results', results.engines);
+    renderLinks('social-media-results', results.social);
+    renderLinks('images-videos-results', results.images);
+    renderLinks('news-results', results.news);
+
+    document.getElementById('search-summary').innerHTML = generateSummary(nombre, results);
+
+    const history = document.getElementById('search-history');
+    const li = document.createElement('li');
+    li.textContent = nombre;
+    history.appendChild(li);
+
+    window.latestResults = { nombre, results };
+  };
+
+  document.getElementById('search-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    performSearch();
+  });
+
+  document.getElementById('update-search').addEventListener('click', () => {
+    performSearch();
+  });
+
+  document.getElementById('load-profile-changes').addEventListener('click', () => {
+    const nombre = document.getElementById('nombre').value.trim();
+    const profileChanges = [
+      { date: '2024-03-01', desc: `Ver historial en Wayback Machine para: ${nombre}` },
+      { date: '2024-03-10', desc: `Revisar perfiles duplicados en NameCheckr de: ${nombre}` }
+    ];
+    document.getElementById('profile-changes').innerHTML = profileChanges.map(item => `<li>${item.date}: ${item.desc}</li>`).join('');
+  });
+
+  document.getElementById('load-activity-timeline').addEventListener('click', () => {
+    const nombre = document.getElementById('nombre').value.trim();
+    const timeline = [
+      { date: '2024-02-05', desc: `Tweets públicos relacionados con: ${nombre}` },
+      { date: '2024-02-08', desc: `Menciones en Facebook sobre: ${nombre}` },
+      { date: '2024-02-12', desc: `Videos subidos en YouTube buscando: ${nombre}` }
+    ];
+    document.getElementById('activity-timeline').innerHTML = timeline.map(item => `<li>${item.date}: ${item.desc}</li>`).join('');
+  });
+
+  document.getElementById('export-json').addEventListener('click', () => {
+    const data = window.latestResults || { nombre: '', results: {} };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'resultados.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('export-csv').addEventListener('click', () => {
+    const data = window.latestResults;
+    if (!data) return;
+    const rows = [['Categoría', 'Nombre', 'URL']];
+    for (const category in data.results) {
+      data.results[category].forEach(item => {
+        rows.push([category, item.name, item.url]);
+      });
+    }
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'resultados.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('export-html').addEventListener('click', () => {
+    const data = window.latestResults;
+    if (!data) return;
+    let html = `<h1>Resumen de búsqueda: ${data.nombre}</h1>`;
+    for (const category in data.results) {
+      html += `<h2>${category}</h2><ul>`;
+      data.results[category].forEach(item => {
+        html += `<li><a href="${item.url}" target="_blank">${item.name}</a></li>`;
+      });
+      html += '</ul>';
+    }
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'resultados.html';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSINT Tool v3.0</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; background: #0a0a0a; color: #00ff00; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
+        .section { background: #111; border: 1px solid #333; margin: 20px 0; padding: 20px; border-radius: 5px; }
+        .input-group { margin: 15px 0; }
+        .input-group label { display: block; margin-bottom: 5px; color: #888; }
+        .input-group input, .input-group select, .input-group textarea { 
+            width: 100%; padding: 8px; background: #222; border: 1px solid #555; color: #00ff00; border-radius: 3px; 
+        }
+        .btn { background: #333; border: 1px solid #555; color: #00ff00; padding: 10px 20px; cursor: pointer; border-radius: 3px; margin: 5px; }
+        .btn:hover { background: #444; }
+        .btn.danger { border-color: #ff0000; color: #ff0000; }
+        .btn.success { border-color: #00ff00; color: #00ff00; }
+        .results { background: #0a0a0a; border: 1px solid #333; padding: 15px; margin: 10px 0; border-radius: 3px; max-height: 400px; overflow-y: auto; }
+        .status { color: #ffff00; font-size: 12px; }
+        .error { color: #ff0000; }
+        .success { color: #00ff00; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        .logs { background: #000; border: 1px solid #333; padding: 10px; height: 300px; overflow-y: auto; font-size: 12px; }
+        .file-info { background: #1a1a1a; padding: 10px; margin: 5px 0; border-left: 3px solid #00ff00; }
+        .url-item { background: #222; padding: 8px; margin: 5px 0; border-radius: 3px; }
+        .url-item a { color: #00ffff; text-decoration: none; }
+        .url-item a:hover { text-decoration: underline; }
+        .progress { background: #333; height: 20px; border-radius: 3px; margin: 10px 0; }
+        .progress-bar { background: #00ff00; height: 100%; border-radius: 3px; width: 0%; transition: width 0.3s; }
+        .data-section { background: #0f0f0f; border: 1px solid #444; padding: 15px; margin: 10px 0; }
+        .scraped-data { background: #1a0a0a; border-left: 3px solid #ff0000; padding: 10px; margin: 5px 0; font-size: 11px; }
+        .meta-data { background: #0a1a0a; border-left: 3px solid #00ff00; padding: 10px; margin: 5px 0; font-size: 11px; }
+        .tabs { display: flex; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; background: #222; border: 1px solid #555; cursor: pointer; }
+        .tab.active { background: #333; color: #00ff00; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>OSINT Investigator v3.0</h1>
+            <p>Open Source Intelligence Tool - Now with Real Scraping & Analysis</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('search')">Search & Scrape</div>
+            <div class="tab" onclick="switchTab('analysis')">Data Analysis</div>
+            <div class="tab" onclick="switchTab('export')">Export & Tools</div>
+        </div>
+
+        <!-- Search Tab -->
+        <div id="search-tab" class="tab-content active">
+            <div class="section">
+                <h2>Target Configuration</h2>
+                <div class="grid">
+                    <div>
+                        <div class="input-group">
+                            <label>Primary Target:</label>
+                            <input type="text" id="targetName" placeholder="John Doe">
+                        </div>
+                        <div class="input-group">
+                            <label>Secondary Target (optional):</label>
+                            <input type="text" id="targetName2" placeholder="Jane Smith">
+                        </div>
+                        <div class="input-group">
+                            <label>Location/Context:</label>
+                            <input type="text" id="targetLocation" placeholder="New York, Company XYZ">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="input-group">
+                            <label>Upload Image for Reverse Search:</label>
+                            <input type="file" id="targetImage" accept="image/*">
+                            <div id="imagePreview" style="margin-top: 10px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Search Engines & Methods</h2>
+                <div class="grid-3">
+                    <div>
+                        <h3>Google Dorks</h3>
+                        <label><input type="checkbox" id="basicSearch" checked> Basic Profile</label><br>
+                        <label><input type="checkbox" id="socialSearch" checked> Social Media</label><br>
+                        <label><input type="checkbox" id="docSearch"> Documents</label><br>
+                        <label><input type="checkbox" id="emailSearch"> Email Hunt</label><br>
+                        <label><input type="checkbox" id="phoneSearch"> Phone Search</label>
+                    </div>
+                    <div>
+                        <h3>Reverse Image</h3>
+                        <label><input type="checkbox" id="tineye" checked> TinEye</label><br>
+                        <label><input type="checkbox" id="yandex" checked> Yandex Images</label><br>
+                        <label><input type="checkbox" id="googleImg" checked> Google Images</label><br>
+                        <label><input type="checkbox" id="bingImg"> Bing Images</label>
+                    </div>
+                    <div>
+                        <h3>Data Extraction</h3>
+                        <label><input type="checkbox" id="scrapeMode" checked> Auto Scrape</label><br>
+                        <label><input type="checkbox" id="metaExtract" checked> Extract Metadata</label><br>
+                        <label><input type="checkbox" id="socialExtract"> Social Links</label><br>
+                        <label><input type="checkbox" id="phoneExtract"> Phone Numbers</label><br>
+                        <label><input type="checkbox" id="emailExtract" checked> Email Addresses</label>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn success" onclick="startFullInvestigation()">🚀 Start Investigation</button>
+                    <button class="btn" onclick="openAllSearches()">🔍 Open All Searches</button>
+                    <button class="btn" onclick="startScraping()">🕷️ Start Scraping</button>
+                    <button class="btn danger" onclick="stopInvestigation()">⏹️ Stop</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Investigation Progress</h2>
+                <div id="progressContainer">
+                    <div class="progress">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    <div id="currentTask" class="status">Ready to start...</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Live Results</h2>
+                <div class="grid">
+                    <div>
+                        <h3>Generated URLs</h3>
+                        <div id="urlResults" class="results">No URLs generated yet...</div>
+                    </div>
+                    <div>
+                        <h3>Activity Log</h3>
+                        <div id="activityLog" class="logs">System initialized...<br></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Tab -->
+        <div id="analysis-tab" class="tab-content">
+            <div class="section">
+                <h2>Scraped Data Analysis</h2>
+                <div class="grid">
+                    <div>
+                        <h3>Extracted Information</h3>
+                        <div id="extractedData" class="results">No data extracted yet...</div>
+                    </div>
+                    <div>
+                        <h3>Pattern Recognition</h3>
+                        <div id="patternData" class="results">No patterns detected...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Social Media Connections</h2>
+                <div id="socialConnections" class="results">No connections found...</div>
+            </div>
+
+            <div class="section">
+                <h2>Image Analysis Results</h2>
+                <div id="imageAnalysis" class="results">No image analysis data...</div>
+            </div>
+        </div>
+
+        <!-- Export Tab -->
+        <div id="export-tab" class="tab-content">
+            <div class="section">
+                <h2>Export Options</h2>
+                <div class="grid">
+                    <div>
+                        <h3>File Management</h3>
+                        <button class="btn" onclick="exportJSON()">📄 Export JSON</button>
+                        <button class="btn" onclick="exportCSV()">📊 Export CSV</button>
+                        <button class="btn" onclick="exportHTML()">🌐 Export HTML Report</button>
+                        <button class="btn" onclick="loadInvestigation()">📁 Load Investigation</button>
+                        <input type="file" id="loadFile" accept=".json" style="display: none;" onchange="handleFileLoad(this)">
+                    </div>
+                    <div>
+                        <h3>Advanced Tools</h3>
+                        <button class="btn" onclick="generateDorksList()">📝 Generate Custom Dorks</button>
+                        <button class="btn" onclick="bulkImageSearch()">🖼️ Bulk Image Search</button>
+                        <button class="btn" onclick="crossReference()">🔗 Cross Reference Data</button>
+                        <button class="btn" onclick="timelineAnalysis()">⏰ Timeline Analysis</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Investigation Summary</h2>
+                <div id="investigationSummary" class="data-section">
+                    <p>No investigation data available...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global investigation state
+        let investigation = {
+            target: {},
+            urls: [],
+            scrapedData: [],
+            extractedData: {},
+            progress: 0,
+            isRunning: false,
+            timestamp: null
+        };
+
+        let scrapingQueue = [];
+        let currentScrapeIndex = 0;
+
+        // Tab management
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        // Logging system
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('activityLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff0000' : type === 'success' ? '#00ff00' : '#ffffff';
+            logElement.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span><br>`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function updateProgress(percent, task) {
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('currentTask').textContent = task;
+            investigation.progress = percent;
+        }
+
+        // Image handling
+        document.getElementById('targetImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').innerHTML = 
+                        `<img src="${e.target.result}" style="max-width: 200px; max-height: 150px; border: 1px solid #555;">
+                         <p style="font-size: 11px; color: #888;">Size: ${(file.size/1024).toFixed(1)}KB</p>`;
+                    investigation.target.imageData = e.target.result;
+                    log(`Image loaded: ${file.name}`);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Dork generation (improved)
+        function generateDorks(name, name2 = '', location = '') {
+            const dorks = [];
+            const operators = ['AND', 'OR'];
+            
+            if (document.getElementById('basicSearch').checked) {
+                dorks.push(`"${name}"`);
+                if (location) dorks.push(`"${name}" "${location}"`);
+                if (name2) dorks.push(`"${name}" "${name2}"`);
+            }
+            
+            if (document.getElementById('socialSearch').checked) {
+                const socialSites = ['linkedin.com', 'facebook.com', 'twitter.com', 'instagram.com'];
+                socialSites.forEach(site => {
+                    dorks.push(`"${name}" site:${site}`);
+                    if (name2) dorks.push(`"${name}" "${name2}" site:${site}`);
+                });
+            }
+            
+            if (document.getElementById('docSearch').checked) {
+                const fileTypes = ['pdf', 'doc', 'docx', 'xlsx'];
+                fileTypes.forEach(type => {
+                    dorks.push(`"${name}" filetype:${type}`);
+                });
+            }
+            
+            if (document.getElementById('emailSearch').checked) {
+                dorks.push(`"${name}" "@gmail.com" OR "@yahoo.com" OR "@hotmail.com"`);
+                dorks.push(`"${name}" email OR contact OR mail`);
+            }
+            
+            if (document.getElementById('phoneSearch').checked) {
+                dorks.push(`"${name}" phone OR telephone OR mobile`);
+                dorks.push(`"${name}" "+1" OR "555" OR "phone:"`);
+            }
+            
+            return dorks;
+        }
+
+        // URL generation
+        function generateSearchUrls() {
+            const name = document.getElementById('targetName').value.trim();
+            const name2 = document.getElementById('targetName2').value.trim();
+            const location = document.getElementById('targetLocation').value.trim();
+            
+            if (!name) return [];
+            
+            const urls = [];
+            const dorks = generateDorks(name, name2, location);
+            
+            // Google searches
+            dorks.forEach(dork => {
+                urls.push({
+                    type: 'google',
+                    query: dork,
+                    url: `https://www.google.com/search?q=${encodeURIComponent(dork)}`,
+                    timestamp: new Date().toISOString()
+                });
+            });
+            
+            // Reverse image searches
+            if (investigation.target.imageData) {
+                if (document.getElementById('tineye').checked) {
+                    urls.push({
+                        type: 'tineye',
+                        query: 'reverse_image',
+                        url: 'https://tineye.com/',
+                        note: 'Upload image manually',
+                        timestamp: new Date().toISOString()
+                    });
+                }
+                
+                if (document.getElementById('yandex').checked) {
+                    urls.push({
+                        type: 'yandex',
+                        query: 'reverse_image',
+                        url: 'https://yandex.com/images/',
+                        note: 'Upload image manually',
+                        timestamp: new Date().toISOString()
+                    });
+                }
+                
+                if (document.getElementById('googleImg').checked) {
+                    urls.push({
+                        type: 'google_images',
+                        query: 'reverse_image',
+                        url: 'https://images.google.com/',
+                        note: 'Upload image manually',
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            }
+            
+            return urls;
+        }
+
+        // Scraping functions
+        async function scrapeUrl(url) {
+            const proxies = [
+                'https://api.allorigins.win/get?url=',
+                'https://cors-anywhere.herokuapp.com/',
+                'https://api.codetabs.com/v1/proxy?quest='
+            ];
+            
+            for (const proxy of proxies) {
+                try {
+                    const response = await fetch(proxy + encodeURIComponent(url.url));
+                    const data = await response.json();
+                    
+                    let content = '';
+                    if (data.contents) content = data.contents;
+                    else if (data.body) content = data.body;
+                    else content = JSON.stringify(data);
+                    
+                    return {
+                        url: url.url,
+                        content: content,
+                        timestamp: new Date().toISOString(),
+                        proxy: proxy,
+                        success: true
+                    };
+                } catch (error) {
+                    log(`Proxy ${proxy} failed: ${error.message}`, 'error');
+                }
+            }
+            
+            return {
+                url: url.url,
+                content: null,
+                error: 'All proxies failed',
+                success: false
+            };
+        }
+
+        // Data extraction
+        function extractDataFromContent(content, url) {
+            if (!content) return {};
+            
+            const extracted = {
+                emails: [],
+                phones: [],
+                socialLinks: [],
+                metadata: {}
+            };
+            
+            // Email extraction
+            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+            const emails = content.match(emailRegex) || [];
+            extracted.emails = [...new Set(emails)];
+            
+            // Phone extraction
+            const phoneRegex = /(\+?1?[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g;
+            const phones = content.match(phoneRegex) || [];
+            extracted.phones = [...new Set(phones)];
+            
+            // Social links
+            const socialRegex = /(facebook|twitter|instagram|linkedin|youtube|tiktok)\.com\/[a-zA-Z0-9._-]+/g;
+            const socialLinks = content.match(socialRegex) || [];
+            extracted.socialLinks = [...new Set(socialLinks)];
+            
+            // Basic metadata
+            extracted.metadata = {
+                contentLength: content.length,
+                wordCount: content.split(/\s+/).length,
+                extractedAt: new Date().toISOString(),
+                sourceUrl: url
+            };
+            
+            return extracted;
+        }
+
+        // Main functions
+        async function startFullInvestigation() {
+            if (investigation.isRunning) {
+                log('Investigation already running!', 'error');
+                return;
+            }
+            
+            const name = document.getElementById('targetName').value.trim();
+            if (!name) {
+                log('Please enter a target name', 'error');
+                return;
+            }
+            
+            investigation.isRunning = true;
+            investigation.timestamp = new Date().toISOString();
+            investigation.target = {
+                name: name,
+                name2: document.getElementById('targetName2').value.trim(),
+                location: document.getElementById('targetLocation').value.trim(),
+                imageData: investigation.target.imageData
+            };
+            
+            log('🚀 Starting full investigation...', 'success');
+            updateProgress(10, 'Generating search URLs...');
+            
+            // Generate URLs
+            investigation.urls = generateSearchUrls();
+            displayUrls();
+            
+            updateProgress(30, 'Opening searches...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Open searches
+            if (investigation.urls.length > 0) {
+                openAllSearches();
+            }
+            
+            updateProgress(50, 'Starting scraping process...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Start scraping
+            if (document.getElementById('scrapeMode').checked) {
+                await startScraping();
+            }
+            
+            updateProgress(100, 'Investigation completed');
+            investigation.isRunning = false;
+            log('✅ Investigation completed', 'success');
+        }
+
+        function openAllSearches() {
+            if (investigation.urls.length === 0) {
+                investigation.urls = generateSearchUrls();
+                displayUrls();
+            }
+            
+            let opened = 0;
+            investigation.urls.forEach((urlObj, index) => {
+                setTimeout(() => {
+                    window.open(urlObj.url, '_blank');
+                    log(`Opened: ${urlObj.type} - ${urlObj.query}`);
+                    opened++;
+                    updateProgress(30 + (opened / investigation.urls.length) * 20, `Opening search ${opened}/${investigation.urls.length}`);
+                }, index * 500);
+            });
+        }
+
+        async function startScraping() {
+            if (investigation.urls.length === 0) {
+                log('No URLs to scrape', 'error');
+                return;
+            }
+            
+            log('🕷️ Starting scraping process...', 'success');
+            scrapingQueue = [...investigation.urls];
+            currentScrapeIndex = 0;
+            
+            for (let i = 0; i < scrapingQueue.length; i++) {
+                updateProgress(50 + (i / scrapingQueue.length) * 40, `Scraping ${i + 1}/${scrapingQueue.length}`);
+                
+                const result = await scrapeUrl(scrapingQueue[i]);
+                investigation.scrapedData.push(result);
+                
+                if (result.success && result.content) {
+                    const extracted = extractDataFromContent(result.content, result.url);
+                    investigation.extractedData[result.url] = extracted;
+                    
+                    log(`✅ Scraped: ${result.url.substring(0, 50)}...`);
+                    updateAnalysisDisplay();
+                } else {
+                    log(`❌ Failed: ${result.url.substring(0, 50)}...`, 'error');
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Rate limiting
+            }
+            
+            log('🕷️ Scraping completed', 'success');
+        }
+
+        function stopInvestigation() {
+            investigation.isRunning = false;
+            scrapingQueue = [];
+            updateProgress(0, 'Investigation stopped');
+            log('⏹️ Investigation stopped by user', 'error');
+        }
+
+        // Display functions
+        function displayUrls() {
+            const container = document.getElementById('urlResults');
+            if (investigation.urls.length === 0) {
+                container.innerHTML = 'No URLs generated yet...';
+                return;
+            }
+            
+            let html = '';
+            investigation.urls.forEach((urlObj, index) => {
+                html += `
+                    <div class="url-item">
+                        <strong>${urlObj.type}:</strong> ${urlObj.query}<br>
+                        <a href="${urlObj.url}" target="_blank">${urlObj.url}</a>
+                        ${urlObj.note ? `<br><small style="color: #888;">${urlObj.note}</small>` : ''}
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function updateAnalysisDisplay() {
+            // Update extracted data display
+            const extractedContainer = document.getElementById('extractedData');
+            let extractedHtml = '';
+            
+            Object.entries(investigation.extractedData).forEach(([url, data]) => {
+                extractedHtml += `
+                    <div class="meta-data">
+                        <strong>URL:</strong> ${url.substring(0, 60)}...<br>
+                        <strong>Emails:</strong> ${data.emails.join(', ') || 'None'}<br>
+                        <strong>Phones:</strong> ${data.phones.join(', ') || 'None'}<br>
+                        <strong>Social:</strong> ${data.socialLinks.join(', ') || 'None'}<br>
+                        <small>Words: ${data.metadata.wordCount}, Size: ${data.metadata.contentLength}</small>
+                    </div>
+                `;
+            });
+            
+            extractedContainer.innerHTML = extractedHtml || 'No data extracted yet...';
+            
+            // Update pattern recognition
+            const patternContainer = document.getElementById('patternData');
+            const allEmails = Object.values(investigation.extractedData).flatMap(data => data.emails);
+            const allPhones = Object.values(investigation.extractedData).flatMap(data => data.phones);
+            const allSocial = Object.values(investigation.extractedData).flatMap(data => data.socialLinks);
+            
+            const patterns = {
+                uniqueEmails: [...new Set(allEmails)],
+                uniquePhones: [...new Set(allPhones)],
+                uniqueSocial: [...new Set(allSocial)]
+            };
+            
+            patternContainer.innerHTML = `
+                <div class="file-info">
+                    <strong>Unique Emails Found:</strong> ${patterns.uniqueEmails.length}<br>
+                    ${patterns.uniqueEmails.slice(0, 5).map(email => `• ${email}`).join('<br>')}
+                    ${patterns.uniqueEmails.length > 5 ? '<br>...' : ''}
+                </div>
+                <div class="file-info">
+                    <strong>Unique Phones Found:</strong> ${patterns.uniquePhones.length}<br>
+                    ${patterns.uniquePhones.slice(0, 5).map(phone => `• ${phone}`).join('<br>')}
+                    ${patterns.uniquePhones.length > 5 ? '<br>...' : ''}
+                </div>
+                <div class="file-info">
+                    <strong>Social Links Found:</strong> ${patterns.uniqueSocial.length}<br>
+                    ${patterns.uniqueSocial.slice(0, 5).map(social => `• ${social}`).join('<br>')}
+                    ${patterns.uniqueSocial.length > 5 ? '<br>...' : ''}
+                </div>
+            `;
+        }
+
+        // Export functions
+        function exportJSON() {
+            const data = {
+                investigation: investigation,
+                exportedAt: new Date().toISOString(),
+                version: '3.0'
+            };
+            
+            const filename = `osint_${investigation.target.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.json`;
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            
+            log(`📄 Results exported as ${filename}`, 'success');
+        }
+
+        function exportCSV() {
+            const rows = [['URL', 'Type', 'Emails', 'Phones', 'Social Links', 'Word Count']];
+            
+            Object.entries(investigation.extractedData).forEach(([url, data]) => {
+                rows.push([
+                    url,
+                    investigation.urls.find(u => u.url === url)?.type || 'unknown',
+                    data.emails.join('; '),
+                    data.phones.join('; '),
+                    data.socialLinks.join('; '),
+                    data.metadata.wordCount
+                ]);
+            });
+            
+            const csvContent = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `osint_${investigation.target.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            
+            log('📊 CSV exported successfully', 'success');
+        }
+
+        function loadInvestigation() {
+            document.getElementById('loadFile').click();
+        }
+
+        function handleFileLoad(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        investigation = data.investigation;
+                        
+                        // Populate form
+                        document.getElementById('targetName').value = investigation.target.name || '';
+                        document.getElementById('targetName2').value = investigation.target.name2 || '';
+                        document.getElementById('targetLocation').value = investigation.target.location || '';
+                        
+                        // Update displays
+                        displayUrls();
+                        updateAnalysisDisplay();
+                        
+                        log(`📁 Investigation loaded from ${file.name}`, 'success');
+                    } catch (error) {
+                        log(`Error loading file: ${error.message}`, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Initialize
+        log('OSINT Investigator v3.0 initialized');
+        updateProgress(0, 'Ready to start investigation...');
+    </script>
+</body>
+</html>

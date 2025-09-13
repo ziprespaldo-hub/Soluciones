@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplicación OSINT</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      @apply bg-gray-100 text-gray-900;
+    }
+
+    .dark-mode {
+      @apply bg-gray-900 text-gray-100;
+    }
+
+    .card {
+      @apply bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 transition-all duration-300;
+    }
+
+    .module {
+      @apply bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 mb-6 transition-all duration-300;
+    }
+  </style>
+</head>
+
+<body class="p-6 md:p-10 lg:p-14 font-sans">
+  <header class="mb-10 flex justify-between items-center border-b-2 border-gray-300 pb-5">
+    <div>
+      <h1 class="text-4xl font-extrabold tracking-tight">Aplicación OSINT</h1>
+      <p class="text-lg text-gray-600 dark:text-gray-300">Investigación de personas de interés</p>
+    </div>
+    <button id="theme-toggle"
+      class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium py-2 px-5 rounded transition">Modo
+      oscuro</button>
+  </header>
+
+  <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <section class="lg:col-span-2 space-y-6">
+      <div class="module">
+        <h2 class="text-2xl font-semibold mb-4">Búsqueda</h2>
+        <form id="search-form" class="card">
+          <label for="nombre" class="block mb-2 font-medium">Nombre completo y apellidos:</label>
+          <input type="text" id="nombre" name="nombre"
+            class="w-full p-2 mb-4 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <button type="submit"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">Buscar</button>
+        </form>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="module card">
+          <h3 class="text-xl font-semibold mb-2">Motores de búsqueda</h3>
+          <ul id="search-engines-results"></ul>
+        </div>
+        <div class="module card">
+          <h3 class="text-xl font-semibold mb-2">Redes sociales</h3>
+          <ul id="social-media-results"></ul>
+        </div>
+        <div class="module card">
+          <h3 class="text-xl font-semibold mb-2">Imágenes y videos</h3>
+          <ul id="images-videos-results"></ul>
+        </div>
+        <div class="module card">
+          <h3 class="text-xl font-semibold mb-2">Noticias</h3>
+          <ul id="news-results"></ul>
+        </div>
+      </div>
+    </section>
+
+    <aside class="lg:col-span-1 space-y-6">
+      <div class="module card">
+        <h2 class="text-2xl font-semibold mb-4">Historial de búsquedas</h2>
+        <ul id="search-history" class="list-disc pl-5 space-y-1"></ul>
+      </div>
+      <div class="module card">
+        <h2 class="text-2xl font-semibold mb-4">Comparativa</h2>
+        <div>
+          <h3 class="text-lg font-medium mb-2">Cambios en perfiles</h3>
+          <ul id="profile-changes" class="list-disc pl-5 space-y-1"></ul>
+          <button id="load-profile-changes"
+            class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">Cargar cambios</button>
+        </div>
+        <div class="mt-6">
+          <h3 class="text-lg font-medium mb-2">Líneas de tiempo de actividad</h3>
+          <ul id="activity-timeline" class="list-disc pl-5 space-y-1"></ul>
+          <button id="load-activity-timeline"
+            class="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">Cargar líneas de tiempo</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="lg:col-span-2">
+      <div class="module card">
+        <h2 class="text-2xl font-semibold mb-4">Exportación</h2>
+        <div class="flex flex-wrap gap-3 mb-6">
+          <button id="export-json"
+            class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition">Exportar a JSON</button>
+          <button id="export-csv"
+            class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded transition">Exportar a CSV</button>
+          <button id="export-html"
+            class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition">Exportar a HTML</button>
+        </div>
+        <h2 class="text-2xl font-semibold mb-4">Actualización de datos</h2>
+        <button id="update-search"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">Actualizar búsqueda</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="mt-12 border-t-2 border-gray-300 pt-6 text-center">
+    <p class="text-base text-gray-500 dark:text-gray-400">Aplicación OSINT &copy;2023</p>
+  </footer>
+ <script>
+ // Agregar evento para cambiar entre modo claro y oscuro
+ const themeToggle = document.getElementById('theme-toggle');
+ themeToggle.addEventListener('click', () => {
+ document.body.classList.toggle('dark-mode');
+ themeToggle.textContent = document.body.classList.contains('dark-mode') ? 'Modo claro' : 'Modo oscuro';
+ });
+
+ // Realizar búsqueda y mostrar resultados
+ const searchForm = document.getElementById('search-form');
+ searchForm.addEventListener('submit', async (e) => {
+ e.preventDefault();
+ const nombre = document.getElementById('nombre').value.trim();
+ if (nombre) {
+ try {
+ // Realizar búsqueda en motores de búsqueda
+ const searchEnginesResults = document.getElementById('search-engines-results');
+ const searchEngines = [
+ { name: 'Google', url: `https://www.google.com/search?q=${nombre}`, description: 'Motor de búsqueda más popular' },
+ { name: 'Bing', url: `https://www.bing.com/search?q=${nombre}`, description: 'Motor de búsqueda de Microsoft' },
+ { name: 'DuckDuckGo', url: `https://duckduckgo.com/?q=${nombre}`, description: 'Motor de búsqueda que no rastrea tus datos' },
+ ];
+ searchEnginesResults.innerHTML = searchEngines.map(engine => `
+ <li>
+ <a href="${engine.url}" target="_blank">${engine.name}</a>
+ <p class="text-sm text-gray-600">${engine.description}</p>
+ </li>
+ `).join('');
+
+ // Realizar búsqueda en redes sociales
+ const socialMediaResults = document.getElementById('social-media-results');
+ const socialMedia = [
+ { name: 'Facebook', url: `https://www.facebook.com/search/top/?q=${nombre}`, description: 'Red social más popular' },
+ { name: 'Instagram', url: `https://www.instagram.com/explore/tags/${nombre}/`, description: 'Red social de fotos y videos' },
+ { name: 'X (Twitter)', url: `https://twitter.com/search?q=${nombre}`, description: 'Red social de microblogging' },
+ ];
+ socialMediaResults.innerHTML = socialMedia.map(media => `
+ <li>
+ <a href="${media.url}" target="_blank">${media.name}</a>
+ <p class="text-sm text-gray-600">${media.description}</p>
+ </li>
+ `).join('');
+
+ // Realizar búsqueda de imágenes y videos
+ const imagesVideosResults = document.getElementById('images-videos-results');
+ const imageVideoSearches = [
+ { name: 'Imágenes de Google', url: `https://www.google.com/search?q=${nombre}&tbm=isch`, description: 'Búsqueda de imágenes en Google' },
+ { name: 'Videos de YouTube', url: `https://www.youtube.com/results?search_query=${nombre}`, description: 'Búsqueda de videos en YouTube' },
+ ];
+ imagesVideosResults.innerHTML = imageVideoSearches.map(search => `
+ <li>
+ <a href="${search.url}" target="_blank">${search.name}</a>
+ <p class="text-sm text-gray-600">${search.description}</p>
+ </li>
+ `).join('');
+
+ // Realizar búsqueda de noticias
+ const newsResults = document.getElementById('news-results');
+ const newsSearches = [
+ { name: 'Noticias de Google News', url: `https://news.google.com/search?q=${nombre}`, description: 'Búsqueda de noticias en Google News' },
+ ];
+ newsResults.innerHTML = newsSearches.map(search => `
+ <li>
+ <a href="${search.url}" target="_blank">${search.name}</a>
+ <p class="text-sm text-gray-600">${search.description}</p>
+ </li>
+ `).join('');
+
+ // Agregar al historial de búsquedas
+ const searchHistory = document.getElementById('search-history');
+ const li = document.createElement('li');
+ li.textContent = nombre;
+ searchHistory.appendChild(li);
+ } catch (error) {
+ console.error('Error al realizar la búsqueda:', error);
+ }
+ }
+ });
+
+ // Cargar cambios en perfiles
+ const loadProfileChanges = document.getElementById('load-profile-changes');
+ loadProfileChanges.addEventListener('click', async () => {
+ try {
+ const profileChanges = document.getElementById('profile-changes');
+ // Simulación de datos de cambios en perfiles
+ const changes = [
+ { date: '2023-02-15', description: 'Cambio de foto de perfil' },
+ { date: '2023-03-01', description: 'Actualización de información personal' },
+ ];
+ profileChanges.innerHTML = changes.map(change => `<li>${change.date}: ${change.description}</li>`).join('');
+ } catch (error) {
+ console.error('Error al cargar cambios en perfiles:', error);
+ }
+ });
+
+ // Cargar líneas de tiempo de actividad
+ const loadActivityTimeline = document.getElementById('load-activity-timeline');
+ loadActivityTimeline.addEventListener('click', async () => {
+ try {
+ const activityTimeline = document.getElementById('activity-timeline');
+ // Simulación de datos de líneas de tiempo de actividad
+ const timeline = [
+ { date: '2023-02-10', description: 'Publicación en Facebook' },
+ { date: '2023-02-12', description: 'Tweet en Twitter' },
+ ];
+ activityTimeline.innerHTML = timeline.map(event => `<li>${event.date}: ${event.description}</li>`).join('');
+ } catch (error) {
+ console.error('Error al cargar líneas de tiempo de actividad:', error);
+ }
+ });
+
+ // Exportar datos
+ const exportJson = document.getElementById('export-json');
+ exportJson.addEventListener('click', () => {
+ const data = {
+ searchTerm: document.getElementById('nombre').value.trim(),
+ // Agregar más datos según sea necesario
+ };
+ const json = JSON.stringify(data, null, 2);
+ const blob = new Blob([json], { type: 'application/json' });
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = 'datos.json';
+ a.click();
+ URL.revokeObjectURL(url);
+ });
+
+ const exportCsv = document.getElementById('export-csv');
+ exportCsv.addEventListener('click', () => {
+ const data = [
+ ['Término de búsqueda', document.getElementById('nombre').value.trim()],
+ // Agregar más datos según sea necesario
+ ];
+ const csv = data.map(row => row.join(',')).join('\n');
+ const blob = new Blob([csv], { type: 'text/csv' });
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = 'datos.csv';
+ a.click();
+ URL.revokeObjectURL(url);
+ });
+
+ const exportHtml = document.getElementById('export-html');
+ exportHtml.addEventListener('click', () => {
+ const data = `
+ <h1>Resultados de la búsqueda</h1>
+ <p>Término de búsqueda: ${document.getElementById('nombre').value.trim()}</p>
+ <!-- Agregar más datos según sea necesario -->
+ `;
+ const blob = new Blob([data], { type: 'text/html' });
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = 'datos.html';
+ a.click();
+ URL.revokeObjectURL(url);
+ });
+
+ // Actualizar búsqueda
+ const updateSearch = document.getElementById('update-search');
+ updateSearch.addEventListener('click', () => {
+ searchForm.dispatchEvent(new Event('submit'));
+ });
+ </script>
+</body>
+</html>

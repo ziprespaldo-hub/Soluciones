@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>OSINT Connection Analyzer</title>
+ <script src="https://cdn.tailwindcss.com"></script>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+ <style>
+ .matrix-bg {
+ position: fixed;
+ top:0;
+ left:0;
+ width:100%;
+ height:100%;
+ z-index: -1;
+ }
+
+ .connection-strength {
+ display: inline-block;
+ padding:4px 10px;
+ border-radius:10px;
+ font-weight: bold;
+ }
+
+ .strength-low {
+ background: #c6f4d6;
+ color: #2f855a;
+ }
+
+ .strength-medium {
+ background: #fefcbf;
+ color: #d69e2e;
+ }
+
+ .strength-high {
+ background: #fed7d7;
+ color: #c53030;
+ }
+
+ .strength-critical {
+ background: #feb2b2;
+ color: #c53030;
+ }
+
+ .result-link {
+ text-decoration: underline;
+ color: blue;
+ }
+
+ .image-upload-area {
+ border: 2px dashed #ccc;
+ padding: 20px;
+ text-align: center;
+ cursor: pointer;
+ }
+
+ .image-upload-area:hover {
+ background-color: #f0f0f0;
+ }
+ </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+ <canvas class="matrix-bg" id="matrix"></canvas>
+
+ <div class="container mx-auto p-4 max-w-4xl mt-10 bg-white rounded-lg shadow-lg">
+ <div class="header mb-6">
+ <h1 class="text-3xl font-bold"><i class="fas fa-search"></i> OSINT CONNECTION ANALYZER</h1>
+ <p class="text-gray-600">[ Open Source Intelligence - Advanced Correlation Engine ]</p>
+ </div>
+
+ <div class="terminal mb-6">
+ <div class="terminal-header bg-gray-200 p-2 rounded-t-lg">
+ <i class="fas fa-terminal"></i>
+ <span class="terminal-title">Target Specification</span>
+ </div>
+
+ <div class="input-grid p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+ <div class="target-input">
+ <h3 class="mb-2"><i class="fas fa-user"></i> Target1</h3>
+ <input type="text" id="target1-name" placeholder="Full Name" class="w-full p-2 mb-2 border border-gray-300 rounded" />
+ <input type="text" id="target1-alias" placeholder="Alias/Username" class="w-full p-2 mb-2 border border-gray-300 rounded" />
+ <input type="email" id="target1-email" placeholder="Email (optional)" class="w-full p-2 mb-2 border border-gray-300 rounded" />
+ <input type="text" id="target1-location" placeholder="Location (optional)" class="w-full p-2 mb-2 border border-gray-300 rounded" />
+ </div>
+
+ <div class="target-input">
+ <h3 class="mb-2"><i class="fas fa-user"></i> Target2</h3>
+ <input type="text" id="target2-name" placeholder="Full Name" class="w-full p-2 mb-2 border border-gray-300 rounded" />
+ <input type="text" id="target2-alias" placeholder="Alias/Username" class="w-full p-2 mb-2 border border-gray-300 rounded" />
+ <input type="email" id="target2-email" placeholder="Email (optional)" class="w-full p-2 mb-2 border border-gray-300 rounded" />
+ <input type="text" id="target2-location" placeholder="Location (optional)" class="w-full p-2 mb-2 border border-gray-300 rounded" />
+ </div>
+
+ <div class="target-input">
+ <h3 class="mb-2"><i class="fas fa-user-plus"></i> Target3 (Optional)</h3>
+ <input type="text" id="target3-name" placeholder="Full Name" class="w-full p-2 mb-2 border border-gray-300 rounded" />
+ <input type="text" id="target3-alias" placeholder="Alias/Username" class="w-full p-2 mb-2 border border-gray-300 rounded" />
+ <input type="email" id="target3-email" placeholder="Email (optional)" class="w-full p-2 mb-2 border border-gray-300 rounded" />
+ <input type="text" id="target3-location" placeholder="Location (optional)" class="w-full p-2 mb-2 border border-gray-300 rounded" />
+ </div>
+ </div>
+ </div>
+
+ <div class="terminal mb-6">
+ <div class="terminal-header bg-gray-200 p-2 rounded-t-lg">
+ <i class="fas fa-image"></i>
+ <span class="terminal-title">Image Search</span>
+ </div>
+
+ <div class="image-upload-grid p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+ <div class="image-upload-area" id="image-upload-area1">
+ <input type="file" id="image-upload-input1" accept="image/*" style="display: none;" />
+ <i class="fas fa-cloud-upload-alt fa-2x mb-2"></i>
+ <p>Drag or click to upload image 1</p>
+ </div>
+
+ <div class="image-upload-area" id="image-upload-area2">
+ <input type="file" id="image-upload-input2" accept="image/*" style="display: none;" />
+ <i class="fas fa-cloud-upload-alt fa-2x mb-2"></i>
+ <p>Drag or click to upload image 2</p>
+ </div>
+ </div>
+ </div>
+
+ <div class="terminal mb-6">
+ <div class="terminal-header bg-gray-200 p-2 rounded-t-lg">
+ <i class="fas fa-cogs"></i>
+ <span class="terminal-title">OSINT Techniques Selection</span>
+ </div>
+
+ <div class="osint-techniques p-4">
+ <div class="technique-group mb-4">
+ <h4 class="mb-2"><i class="fab fa-google"></i> Google Dorks</h4>
+ <label class="block mb-2"><input type="checkbox" value="social_media_dorks" checked /> Social Media Profiles</label>
+ <label class="block mb-2"><input type="checkbox" value="document_dorks" checked /> Leaked Documents</label>
+ <label class="block mb-2"><input type="checkbox" value="email_dorks" checked /> Email Exposure</label>
+ <label class="block mb-2"><input type="checkbox" value="image_search" /> Image Search</label>
+ </div>
+ </div>
+
+ <button class="scan-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" id="start-scan">
+ <i class="fas fa-satellite-dish"></i> Initiate OSINT Scan
+ </button>
+ </div>
+
+ <div class="loading" id="loading" style="display: none">
+ <div class="scanner-animation">
+ <div class="scan-line"></div>
+ </div>
+ <h3 class="text-lg font-bold">Scanning Targets...</h3>
+ <p class="text-gray-600">Executing OSINT techniques and correlation algorithms</p>
+ <div class="console-log" id="console-log"></div>
+ </div>
+
+ <div class="results" id="results" style="display: none">
+ <div class="terminal">
+ <div class="terminal-header bg-gray-200 p-2 rounded-t-lg">
+ <i class="fas fa-chart-line"></i>
+ <span class="terminal-title">Intelligence Report</span>
+ </div>
+
+ <div id="dorks-section" class="result-section p-4">
+ <div class="result-header cursor-pointer" onclick="toggleSection('dorks-content')">
+ <h3 class="text-lg font-bold"><i class="fas fa-search"></i> Google Dorks Results</h3>
+ </div>
+ <div id="dorks-content" class="result-content hidden"></div>
+ </div>
+
+ <div id="image-search-section" class="result-section p-4">
+ <div class="result-header cursor-pointer" onclick="toggleSection('image-search-content')">
+ <h3 class="text-lg font-bold"><i class="fas fa-image"></i> Image Search Results</h3>
+ </div>
+ <div id="image-search-content" class="result-content hidden"></div>
+ </div>
+
+ <div class="export-buttons p-4">
+ <button class="export-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="exportReport()">
+ <i class="fas fa-download"></i> Export JSON
+ </button>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <script>
+ const canvas = document.getElementById('matrix');
+ const ctx = canvas.getContext('2d');
+ canvas.width = window.innerWidth;
+ canvas.height = window.innerHeight;
+ const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%+-/~{[|`]}";
+ const matrixArray = matrix.split("");
+ const fontSize = 10;
+ const columns = canvas.width / fontSize;
+ const drops = Array(Math.floor(columns)).fill(1);
+
+ function drawMatrix() {
+ ctx.fillStyle = 'rgba(0,0,0,0.04)';
+ ctx.fillRect(0, 0, canvas.width, canvas.height);
+ ctx.fillStyle = '#0f0'; // Green color for matrix effect
+ ctx.font = fontSize + 'px courier';
+ drops.forEach((drop, i) => {
+ const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
+ ctx.fillText(text, i * fontSize, drop * fontSize);
+ if (drop * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+ drops[i]++;
+ });
+ }
+ setInterval(drawMatrix, 35);
+
+ class OSINTAnalyzer {
+ constructor() {
+ this.scanResults = {};
+ this.consoleLog = document.getElementById('console-log');
+ this.apiKey = 'YOUR_GOOGLE_CUSTOM_SEARCH_API_KEY';
+ this.searchEngineId = 'YOUR_GOOGLE_CUSTOM_SEARCH_ENGINE_ID';
+ document.getElementById('start-scan').addEventListener('click', () => this.startOSINTScan());
+
+ // Image upload event listeners
+ document.getElementById('image-upload-area1').addEventListener('click', () => document.getElementById('image-upload-input1').click());
+ document.getElementById('image-upload-input1').addEventListener('change', (e) => this.handleImageUpload(e, 'image-upload-area1'));
+ document.getElementById('image-upload-area2').addEventListener('click', () => document.getElementById('image-upload-input2').click());
+ document.getElementById('image-upload-input2').addEventListener('change', (e) => this.handleImageUpload(e, 'image-upload-area2'));
+
+ // Drag and drop event listeners
+ document.getElementById('image-upload-area1').addEventListener('dragover', (e) => this.handleDragOver(e));
+ document.getElementById('image-upload-area1').addEventListener('drop', (e) => this.handleDrop(e, 'image-upload-input1'));
+ document.getElementById('image-upload-area2').addEventListener('dragover', (e) => this.handleDragOver(e));
+ document.getElementById('image-upload-area2').addEventListener('drop', (e) => this.handleDrop(e, 'image-upload-input2'));
+ }
+
+ log(msg) {
+ const time = new Date().toLocaleTimeString();
+ this.consoleLog.textContent += `[${time}] ${msg}\n`;
+ this.consoleLog.scrollTop = this.consoleLog.scrollHeight;
+ }
+
+ async startOSINTScan() {
+ const targets = this.getTargets();
+ if (targets.length < 2) return alert("Please enter at least two targets.");
+ this.showLoading();
+ this.scanResults = {};
+ const techniques = this.getSelectedTechniques();
+ this.log("Starting scan...");
+ for (const tech of techniques) {
+ await this.executeTechnique(tech, targets);
+ await this.delay(500 + Math.random() * 800);
+ }
+ this.log("Scan completed.");
+ await this.delay(1000);
+ this.displayResults(targets);
+ }
+
+ getTargets() {
+ const targets = [];
+ for (let i = 1; i <= 3; i++) {
+ const name = document.getElementById(`target${i}-name`).value.trim();
+ const alias = document.getElementById(`target${i}-alias`).value.trim();
+ const email = document.getElementById(`target${i}-email`).value.trim();
+ const location = document.getElementById(`target${i}-location`).value.trim();
+ if (name || alias || email) targets.push({ name, alias, email, location });
+ }
+ return targets;
+ }
+
+ getSelectedTechniques() {
+ return Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(e => e.value);
+ }
+
+ async executeTechnique(tech, targets) {
+ this.log(`Executing: ${tech}`);
+ if (tech === 'image_search') {
+ await this.imageSearch();
+ } else {
+ if (!this.scanResults.dorks) this.scanResults.dorks = [];
+ for (const target of targets) {
+ let query;
+ switch (tech) {
+ case 'social_media_dorks':
+ query = `site:facebook.com OR site:twitter.com "${target.name}" OR "${target.alias}"`;
+ break;
+ case 'document_dorks':
+ query = `filetype:pdf "${target.name}" OR "${target.alias}"`;
+ break;
+ case 'email_dorks':
+ query = `intext:${target.email}`;
+ break;
+ default:
+ query = `Simulation of ${tech}`;
+ }
+
+ const results = await this.googleSearch(query);
+ const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+ this.scanResults.dorks.push({
+ query,
+ description: `Results for ${target.name || target.alias}`,
+ results: results.length,
+ relevance: this.calculateRelevance(results.length),
+ searchUrl
+ });
+ }
+ }
+ }
+
+ async googleSearch(query) {
+ const url = `https://www.googleapis.com/customsearch/v1?key=${this.apiKey}&cx=${this.searchEngineId}&q=${encodeURIComponent(query)}`;
+ try {
+ const response = await fetch(url);
+ const data = await response.json();
+ return data.items || [];
+ } catch (error) {
+ this.log(`Error in Google Search: ${error}`);
+ return [];
+ }
+ }
+
+ async imageSearch() {
+ const image1 = document.getElementById('image-upload-input1').files[0];
+ const image2 = document.getElementById('image-upload-input2').files[0];
+ if (image1 && image2) {
+ // Implement image search logic here
+ this.log('Image search is not implemented yet.');
+ } else {
+ this.log('Please upload two images for image search.');
+ }
+ }
+
+ displayResults() {
+ const dorksDiv = document.getElementById('dorks-content');
+ dorksDiv.innerHTML = '';
+ this.scanResults.dorks?.forEach(d => {
+ dorksDiv.innerHTML += `
+ <div class="dork-result mb-4 p-4 border border-gray-300 rounded">
+ <div class="dork-query font-bold">${d.query}</div>
+ <div class="dork-description text-gray-600">${d.description}</div>
+ <div class="connection-strength strength-${d.relevance.toLowerCase()}">${d.relevance}</div>
+ <a href="${d.searchUrl}" target="_blank" class="result-link">View Search Results</a>
+ </div>
+ `;
+ });
+ document.getElementById('dorks-content').classList.remove('hidden');
+ document.getElementById('loading').style.display = 'none';
+ document.getElementById('results').style.display = 'block';
+ }
+
+ calculateRelevance(resultCount) {
+ const levels = ['Low', 'Medium', 'High', 'Critical'];
+ if (resultCount > 100) return levels[3];
+ if (resultCount > 50) return levels[2];
+ if (resultCount > 10) return levels[1];
+ return levels[0];
+ }
+
+ delay(ms) {
+ return new Promise(res => setTimeout(res, ms));
+ }
+
+ showLoading() {
+ document.getElementById('loading').style.display = 'block';
+ document.getElementById('results').style.display = 'none';
+ }
+
+ handleImageUpload(e, areaId) {
+ const file = e.target.files[0];
+ const reader = new FileReader();
+ reader.onload = () => {
+ document.getElementById(areaId).innerHTML = `
+ <img src="${reader.result}" alt="Uploaded Image" style="max-width: 100%; max-height: 200px;" />
+ `;
+ };
+ reader.readAsDataURL(file);
+ }
+
+ handleDragOver(e) {
+ e.preventDefault();
+ e.stopPropagation();
+ }
+
+ handleDrop(e, inputId) {
+ e.preventDefault();
+ e.stopPropagation();
+ const file = e.dataTransfer.files[0];
+ const input = document.getElementById(inputId);
+ input.files = e.dataTransfer.files;
+ this.handleImageUpload({ target: input }, input.parentNode.id);
+ }
+ }
+
+ function toggleSection(id) {
+ const el = document.getElementById(id);
+ el.classList.toggle('hidden');
+ }
+
+ function exportReport() {
+ const data = JSON.stringify(scanner.scanResults, null, 2);
+ const blob = new Blob([data], { type: 'application/json' });
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = `osint_report_${Date.now()}.json`;
+ a.click();
+ URL.revokeObjectURL(url);
+ }
+
+ const scanner = new OSINTAnalyzer();
+ </script>
+</body>
+</html>

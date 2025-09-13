@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador de Conexiones Avanzado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * { font-family: 'Inter', sans-serif; }
+        
+        body {
+            background: linear-gradient(135deg, #607c8c, #0c3026 35%, #282d26 100%);
+            min-height: 100vh;
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .connection-line {
+            stroke: #10b981;
+            stroke-width: 3;
+            stroke-dasharray: 5,5;
+            animation: dash 1s linear infinite;
+        }
+        
+        @keyframes dash {
+            to { stroke-dashoffset: -10; }
+        }
+        
+        .timeline-item {
+            opacity: 0;
+            animation: slideIn 0.5s ease forwards;
+        }
+        
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .face-detection {
+            border: 3px solid #ef4444;
+            border-radius: 4px;
+            position: absolute;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="text-white">
+    <div class="min-h-screen p-4">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                <i class="fas fa-network-wired mr-3"></i>
+                Analizador de Conexiones AI
+            </h1>
+            <p class="text-xl opacity-80">Descubre patrones ocultos y conexiones profundas</p>
+        </header>
+
+        <!-- Main Interface -->
+        <div class="max-w-7xl mx-auto space-y-8">
+            <!-- Input Section -->
+            <div class="glass rounded-2xl p-8 card-hover">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <i class="fas fa-users mr-3 text-cyan-400"></i>
+                    Configuración de Análisis
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Person 1 -->
+                    <div class="glass rounded-xl p-6 card-hover">
+                        <h3 class="text-lg font-semibold mb-4 text-cyan-300">Persona Principal</h3>
+                        <input type="text" id="person1" placeholder="Nombre o @usuario" 
+                               class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/60 mb-4">
+                        
+                        <div class="image-upload-area border-2 border-dashed border-white/30 rounded-lg p-6 text-center cursor-pointer hover:border-cyan-400 transition-colors"
+                             onclick="document.getElementById('img1').click()">
+                            <input type="file" id="img1" class="hidden" accept="image/*" onchange="handleImageUpload(this, 'preview1')">
+                            <i class="fas fa-cloud-upload-alt text-3xl mb-2 text-white/60"></i>
+                            <p class="text-sm text-white/60">Subir foto para reconocimiento facial</p>
+                            <div id="preview1" class="mt-4"></div>
+                        </div>
+                    </div>
+
+                    <!-- Person 2 -->
+                    <div class="glass rounded-xl p-6 card-hover">
+                        <h3 class="text-lg font-semibold mb-4 text-purple-300">Persona Objetivo</h3>
+                        <input type="text" id="person2" placeholder="Nombre o @usuario" 
+                               class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/60 mb-4">
+                        
+                        <div class="image-upload-area border-2 border-dashed border-white/30 rounded-lg p-6 text-center cursor-pointer hover:border-purple-400 transition-colors"
+                             onclick="document.getElementById('img2').click()">
+                            <input type="file" id="img2" class="hidden" accept="image/*" onchange="handleImageUpload(this, 'preview2')">
+                            <i class="fas fa-cloud-upload-alt text-3xl mb-2 text-white/60"></i>
+                            <p class="text-sm text-white/60">Subir foto para análisis</p>
+                            <div id="preview2" class="mt-4"></div>
+                        </div>
+                    </div>
+
+                    <!-- Settings -->
+                    <div class="glass rounded-xl p-6 card-hover">
+                        <h3 class="text-lg font-semibold mb-4 text-green-300">Configuración</h3>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm mb-2">Profundidad de análisis</label>
+                            <select class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white">
+                                <option value="basic">Básico (Rápido)</option>
+                                <option value="deep" selected>Profundo (Completo)</option>
+                                <option value="forensic">Forense (Exhaustivo)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm mb-2">Fuentes a analizar</label>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <label class="flex items-center"><input type="checkbox" checked class="mr-2"> Facebook</label>
+                                <label class="flex items-center"><input type="checkbox" checked class="mr-2"> Instagram</label>
+                                <label class="flex items-center"><input type="checkbox" checked class="mr-2"> Twitter/X</label>
+                                <label class="flex items-center"><input type="checkbox" checked class="mr-2"> LinkedIn</label>
+                                <label class="flex items-center"><input type="checkbox" checked class="mr-2"> TikTok</label>
+                                <label class="flex items-center"><input type="checkbox" checked class="mr-2"> Google</label>
+                            </div>
+                        </div>
+                        
+                        <button id="analyzeBtn" onclick="startAnalysis()" 
+                                class="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105">
+                            <i class="fas fa-rocket mr-2"></i>
+                            Iniciar Análisis
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Animation -->
+            <div id="loadingSection" class="glass rounded-2xl p-8 text-center hidden">
+                <div class="pulse-animation mb-4">
+                    <i class="fas fa-brain text-6xl text-cyan-400"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Procesando con IA...</h3>
+                <div class="progress-steps text-sm space-y-2" id="progressSteps">
+                    <p>🔍 Buscando perfiles públicos...</p>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="hidden space-y-8">
+                <!-- Connection Summary -->
+                <div class="glass rounded-2xl p-8 card-hover">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-chart-network mr-3 text-green-400"></i>
+                        Resumen de Conexiones
+                    </h2>
+                    <div id="connectionSummary" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+                </div>
+
+                <!-- Visual Network -->
+                <div class="glass rounded-2xl p-8 card-hover">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-project-diagram mr-3 text-purple-400"></i>
+                        Mapa de Conexiones
+                    </h2>
+                    <div id="networkGraph" class="h-96 bg-black/20 rounded-lg"></div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="glass rounded-2xl p-8 card-hover">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-timeline mr-3 text-cyan-400"></i>
+                        Línea de Tiempo de Interacciones
+                    </h2>
+                    <div id="timeline" class="space-y-4"></div>
+                </div>
+
+                <!-- Detailed Results -->
+                <div class="glass rounded-2xl p-8 card-hover">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-search-plus mr-3 text-yellow-400"></i>
+                        Análisis Detallado
+                    </h2>
+                    <div id="detailedResults" class="space-y-6"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let analysisData = {};
+        let facialData = {};
+
+        // Image upload handler with facial recognition simulation
+        function handleImageUpload(input, previewId) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById(previewId);
+                preview.innerHTML = `
+                    <div class="relative inline-block">
+                        <img src="${e.target.result}" class="w-32 h-32 object-cover rounded-lg" id="img_${previewId}">
+                        <div class="absolute inset-0 opacity-0" id="face_${previewId}"></div>
+                    </div>
+                    <p class="text-xs mt-2 text-green-300">✓ Imagen cargada - Detectando rostros...</p>
+                `;
+
+                // Simulate facial recognition
+                setTimeout(() => {
+                    simulateFaceDetection(previewId);
+                }, 1500);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Simulate facial recognition
+        function simulateFaceDetection(previewId) {
+            const faceDiv = document.getElementById(`face_${previewId}`);
+            if (faceDiv) {
+                faceDiv.innerHTML = '<div class="face-detection" style="width: 80px; height: 80px; top: 10px; left: 26px;"></div>';
+                faceDiv.classList.remove('opacity-0');
+                
+                // Store facial data simulation
+                facialData[previewId] = {
+                    detected: true,
+                    confidence: 0.94,
+                    landmarks: 68,
+                    age: Math.floor(Math.random() * 30) + 20,
+                    gender: Math.random() > 0.5 ? 'M' : 'F'
+                };
+            }
+        }
+
+        // Main analysis function
+        async function startAnalysis() {
+            const person1 = document.getElementById('person1').value;
+            const person2 = document.getElementById('person2').value;
+
+            if (!person1 || !person2) {
+                alert('Por favor, ingresa al menos dos personas para analizar');
+                return;
+            }
+
+            document.getElementById('loadingSection').classList.remove('hidden');
+            document.getElementById('resultsSection').classList.add('hidden');
+
+            // Simulate analysis steps
+            const steps = [
+                '🔍 Buscando perfiles públicos...',
+                '📊 Analizando metadatos de imágenes...',
+                '🧠 Procesando reconocimiento facial...',
+                '🌐 Rastreando conexiones sociales...',
+                '📈 Generando análisis de patrones...',
+                '🔗 Construyendo mapa de relaciones...',
+                '✅ Análisis completado'
+            ];
+
+            for (let i = 0; i < steps.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                document.getElementById('progressSteps').innerHTML = steps.slice(0, i + 1).map(step => `<p>${step}</p>`).join('');
+            }
+
+            // Generate mock analysis data
+            analysisData = {
+                persons: [
+                    { name: person1, platforms: generatePlatformData() },
+                    { name: person2, platforms: generatePlatformData() }
+                ],
+                connections: generateConnections(),
+                timeline: generateTimeline(),
+                insights: generateInsights()
+            };
+
+            displayResults();
+        }
+
+        function generatePlatformData() {
+            const platforms = ['Facebook', 'Instagram', 'Twitter', 'LinkedIn', 'TikTok'];
+            return platforms.map(platform => ({
+                name: platform,
+                found: Math.random() > 0.3,
+                url: `https://${platform.toLowerCase()}.com/user${Math.floor(Math.random() * 1000)}`,
+                followers: Math.floor(Math.random() * 10000),
+                lastActive: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
+            }));
+        }
+
+        function generateConnections() {
+            const types = ['Mutual Friends', 'Tagged Together', 'Same Location', 'Similar Interests', 'Group Membership'];
+            return types.map(type => ({
+                type,
+                strength: Math.floor(Math.random() * 100),
+                evidence: Math.floor(Math.random() * 20) + 1,
+                platforms: ['Facebook', 'Instagram'].slice(0, Math.floor(Math.random() * 2) + 1)
+            }));
+        }
+
+        function generateTimeline() {
+            const events = [];
+            for (let i = 0; i < 8; i++) {
+                events.push({
+                    date: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
+                    type: ['Photo', 'Check-in', 'Comment', 'Like', 'Tag'][Math.floor(Math.random() * 5)],
+                    platform: ['Facebook', 'Instagram', 'Twitter'][Math.floor(Math.random() * 3)],
+                    description: 'Interacción detectada entre ambos usuarios',
+                    url: `https://example.com/post${Math.floor(Math.random() * 1000)}`
+                });
+            }
+            return events.sort((a, b) => b.date - a.date);
+        }
+
+        function generateInsights() {
+            return [
+                'Conexión directa confirmada en 3 plataformas',
+                'Frecuencia de interacción: Alta (semanal)',
+                'Círculo social compartido: 23 contactos mutuos',
+                'Patrones de ubicación: 5 lugares comunes',
+                'Similitud de intereses: 78% de coincidencia'
+            ];
+        }
+
+        function displayResults() {
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('resultsSection').classList.remove('hidden');
+
+            displayConnectionSummary();
+            displayNetworkGraph();
+            displayTimeline();
+            displayDetailedResults();
+        }
+
+        function displayConnectionSummary() {
+            const summary = document.getElementById('connectionSummary');
+            const connectionStrength = Math.floor(Math.random() * 40) + 60;
+            
+            summary.innerHTML = `
+                <div class="text-center p-6 bg-gradient-to-br from-green-500/20 to-cyan-500/20 rounded-xl">
+                    <div class="text-3xl font-bold text-green-400">${connectionStrength}%</div>
+                    <div class="text-sm opacity-80">Fuerza de Conexión</div>
+                </div>
+                <div class="text-center p-6 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl">
+                    <div class="text-3xl font-bold text-purple-400">${analysisData.connections.length}</div>
+                    <div class="text-sm opacity-80">Tipos de Conexión</div>
+                </div>
+                <div class="text-center p-6 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-xl">
+                    <div class="text-3xl font-bold text-yellow-400">${analysisData.timeline.length}</div>
+                    <div class="text-sm opacity-80">Interacciones Detectadas</div>
+                </div>
+            `;
+        }
+
+        function displayNetworkGraph() {
+            const container = document.getElementById('networkGraph');
+            container.innerHTML = `
+                <svg width="100%" height="100%" viewBox="0 0 800 400">
+                    <!-- Persons -->
+                    <circle cx="200" cy="200" r="40" fill="#06b6d4" opacity="0.8"/>
+                    <text x="200" y="205" text-anchor="middle" fill="white" font-size="12">${analysisData.persons[0].name.substring(0, 8)}</text>
+                    
+                    <circle cx="600" cy="200" r="40" fill="#8b5cf6" opacity="0.8"/>
+                    <text x="600" y="205" text-anchor="middle" fill="white" font-size="12">${analysisData.persons[1].name.substring(0, 8)}</text>
+                    
+                    <!-- Connection line -->
+                    <line x1="240" y1="200" x2="560" y2="200" class="connection-line"/>
+                    
+                    <!-- Mutual connections -->
+                    <circle cx="300" cy="120" r="20" fill="#10b981" opacity="0.6"/>
+                    <line x1="220" y1="180" x2="290" y2="130" stroke="#10b981" stroke-width="2" opacity="0.6"/>
+                    <line x1="580" y1="180" x2="310" y2="130" stroke="#10b981" stroke-width="2" opacity="0.6"/>
+                    
+                    <circle cx="400" cy="300" r="20" fill="#f59e0b" opacity="0.6"/>
+                    <line x1="220" y1="220" x2="390" y2="290" stroke="#f59e0b" stroke-width="2" opacity="0.6"/>
+                    <line x1="580" y1="220" x2="410" y2="290" stroke="#f59e0b" stroke-width="2" opacity="0.6"/>
+                    
+                    <circle cx="500" cy="120" r="20" fill="#ef4444" opacity="0.6"/>
+                    <line x1="580" y1="180" x2="510" y2="130" stroke="#ef4444" stroke-width="2" opacity="0.6"/>
+                </svg>
+            `;
+        }
+
+        function displayTimeline() {
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = analysisData.timeline.map((event, index) => `
+                <div class="timeline-item flex items-center space-x-4 p-4 bg-white/5 rounded-lg" style="animation-delay: ${index * 0.1}s; transform: translateX(-20px);">
+                    <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-${getEventIcon(event.type)} text-white"></i>
+                    </div>
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-semibold">${event.type} - ${event.platform}</h4>
+                                <p class="text-sm opacity-80">${event.description}</p>
+                                <a href="${event.url}" target="_blank" class="text-cyan-400 text-xs hover:underline">Ver fuente →</a>
+                            </div>
+                            <span class="text-xs opacity-60">${event.date.toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayDetailedResults() {
+            const detailed = document.getElementById('detailedResults');
+            detailed.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-cyan-300">Análisis de ${analysisData.persons[0].name}</h3>
+                        ${analysisData.persons[0].platforms.map(platform => `
+                            <div class="bg-white/5 p-4 rounded-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-medium">${platform.name}</span>
+                                    <span class="text-xs ${platform.found ? 'text-green-400' : 'text-red-400'}">
+                                        ${platform.found ? '✓ Encontrado' : '✗ No encontrado'}
+                                    </span>
+                                </div>
+                                ${platform.found ? `
+                                    <div class="text-xs space-y-1 opacity-80">
+                                        <p>Seguidores: ${platform.followers.toLocaleString()}</p>
+                                        <p>Última actividad: ${platform.lastActive}</p>
+                                        <a href="${platform.url}" target="_blank" class="text-cyan-400 hover:underline">Ver perfil →</a>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-purple-300">Análisis de ${analysisData.persons[1].name}</h3>
+                        ${analysisData.persons[1].platforms.map(platform => `
+                            <div class="bg-white/5 p-4 rounded-lg">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-medium">${platform.name}</span>
+                                    <span class="text-xs ${platform.found ? 'text-green-400' : 'text-red-400'}">
+                                        ${platform.found ? '✓ Encontrado' : '✗ No encontrado'}
+                                    </span>
+                                </div>
+                                ${platform.found ? `
+                                    <div class="text-xs space-y-1 opacity-80">
+                                        <p>Seguidores: ${platform.followers.toLocaleString()}</p>
+                                        <p>Última actividad: ${platform.lastActive}</p>
+                                        <a href="${platform.url}" target="_blank" class="text-cyan-400 hover:underline">Ver perfil →</a>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="mt-8 bg-gradient-to-r from-green-500/10 to-cyan-500/10 p-6 rounded-xl">
+                    <h3 class="text-lg font-semibold text-green-300 mb-4">Insights Clave</h3>
+                    <ul class="space-y-2">
+                        ${analysisData.insights.map(insight => `
+                            <li class="flex items-center text-sm">
+                                <i class="fas fa-check-circle text-green-400 mr-3"></i>
+                                ${insight}
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        function getEventIcon(type) {
+            const icons = {
+                'Photo': 'camera',
+                'Check-in': 'map-marker-alt',
+                'Comment': 'comment',
+                'Like': 'heart',
+                'Tag': 'tag'
+            };
+            return icons[type] || 'circle';
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Analizador de Conexiones AI - Inicializado');
+        });
+    </script>
+</body>
+</html>
